@@ -1,0 +1,27 @@
+Filters
+CTAs filter: India
+Infection Type filter: Bloodstream
+Pathogen: Acinetobacter spp.
+Year: 2023
+
+
+Table data
+"AntibioticName","AntibioticResistGroup","TotalBCIsWithAST","PercentCoverage","LessThan1Year","BetweenOneAndFiveYears","MoreThan5Year"
+"Amikacin","Aminoglycoside resistance","10244","90.574712644","2458","658","6866"
+"Gentamicin","Aminoglycoside resistance","8298","73.368700265","2261","564","5236"
+"Doripenem","Carbapenem resistance","-","-","-","-","-"
+"Imipenem","Carbapenem resistance","9946","87.939876216","2420","645","6723"
+"Meropenem","Carbapenem resistance","7827","69.204244032","1712","502","5413"
+"Colistin","Polymyxin resistance","6726","59.469496021","1714","436","4467"
+"Minocycline","Tetracycline resistance","7839","69.310344828","2064","479","5187"
+"Tigecycline","Tetracycline resistance","-","-","-","-","-"
+
+
+Plot data
+"Iso3","Year","Specimen","PathogenName","AntibioticGroup","AgeGrouping","Resistant","InterpretableAST","PercentResistant","lower","upper"
+"IND",2023,"BLOOD","Acinetobacter spp.","Aminoglycoside resistance","Total",6477,10244,63.227254979,62.293492378,64.161017579
+"IND",2023,"BLOOD","Acinetobacter spp.","Aminoglycoside resistance","Total",4940,8298,59.53241745,58.47633033,60.58850457
+"IND",2023,"BLOOD","Acinetobacter spp.","Carbapenem resistance","Total",7102,9946,71.405590187,70.517537937,72.293642437
+"IND",2023,"BLOOD","Acinetobacter spp.","Carbapenem resistance","Total",5394,7827,68.915293216,67.889901992,69.94068444
+"IND",2023,"BLOOD","Acinetobacter spp.","Colistin","Total",65,6726,0.966399048,0.732597614,1.200200483
+"IND",2023,"BLOOD","Acinetobacter spp.","Minocycline","Total",2073,7839,26.444699579,25.468357416,27.421041742

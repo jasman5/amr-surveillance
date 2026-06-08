@@ -1,0 +1,28 @@
+Filters
+CTAs filter: India
+Infection Type filter: Bloodstream
+Pathogen: Escherichia coli
+Resistance:Third-generation cephalosporins
+
+
+Table data
+"Year","TotalBCIsWithAST","PercentCoverage","LessThan1Year","BetweenOneAndFiveYears","MoreThan5Year"
+2016,"-","-","-","-","-"
+2017,"1414","87.60842627","117","40","1054"
+2018,"2078","68.580858086","200","75","1543"
+2019,"4685","88.229755179","463","181","3668"
+2020,"2754","93.134934055","400","85","2269"
+2021,"5727","75.854304636","765","235","4418"
+2022,"7037","69.316390859","1143","286","5608"
+2023,"6564","66.5315224","1000","237","5243"
+
+
+Plot data
+"Iso3","Year","Specimen","PathogenName","AntibioticGroup","AgeGrouping","InterpretableAST","Resistant","PercentResistant","lower","upper"
+"IND",2017,"BLOOD","Escherichia coli","Third-generation cephalosporins","Total",1414,1062,75.106082037,72.85228114,77.359882933
+"IND",2018,"BLOOD","Escherichia coli","Third-generation cephalosporins","Total",2078,1638,78.825794033,77.069201455,80.582386611
+"IND",2019,"BLOOD","Escherichia coli","Third-generation cephalosporins","Total",4685,3707,79.124866596,77.96108255,80.288650641
+"IND",2020,"BLOOD","Escherichia coli","Third-generation cephalosporins","Total",2754,2204,80.029048656,78.535919736,81.522177577
+"IND",2021,"BLOOD","Escherichia coli","Third-generation cephalosporins","Total",5727,4210,73.511437053,72.368560994,74.654313111
+"IND",2022,"BLOOD","Escherichia coli","Third-generation cephalosporins","Total",7037,5432,77.191985221,76.211610411,78.172360031
+"IND",2023,"BLOOD","Escherichia coli","Third-generation cephalosporins","Total",6564,5258,80.103595369,79.137800059,81.069390679

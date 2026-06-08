@@ -46,8 +46,7 @@ melted = melted.rename(columns={
 # Keep useful columns
 final = melted[
     ["country", "year", "pathogen", "antibiotic", "resistance_pct"]
-]
-# final = melted[keep].dropna(subset=["pathogen", "antibiotic"])
+].copy()
 
 # Fill missing values
 final["country"] = final["country"].fillna("Global")

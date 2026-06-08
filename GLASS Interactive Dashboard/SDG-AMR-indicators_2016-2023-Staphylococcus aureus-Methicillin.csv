@@ -1,0 +1,28 @@
+Filters
+CTAs filter: India
+Infection Type filter: Bloodstream
+Pathogen: Staphylococcus aureus
+Resistance:Methicillin
+
+
+Table data
+"Year","TotalBCIsWithAST","PercentCoverage","LessThan1Year","BetweenOneAndFiveYears","MoreThan5Year"
+2016,"-","-","-","-","-"
+2017,"2829","93.212520593","619","181","1152"
+2018,"3879","86.836803224","1027","290","1659"
+2019,"5809","80.691762745","1651","483","2746"
+2020,"2156","61.512125535","1024","212","918"
+2021,"8130","87.532299742","2350","910","4683"
+2022,"9245","87.489353648","2951","991","5303"
+2023,"8373","83.040761678","2462","681","5047"
+
+
+Plot data
+"Iso3","Year","Specimen","PathogenName","AntibioticGroup","AgeGrouping","InterpretableAST","Resistant","PercentResistant","lower","upper"
+"IND",2017,"BLOOD","Staphylococcus aureus","Methicillin","Total",2829,1485,52.49204666,50.651827656,54.332265664
+"IND",2018,"BLOOD","Staphylococcus aureus","Methicillin","Total",3879,2448,63.109048724,61.590593725,64.627503723
+"IND",2019,"BLOOD","Staphylococcus aureus","Methicillin","Total",5809,3521,60.612842142,59.356334803,61.86934948
+"IND",2020,"BLOOD","Staphylococcus aureus","Methicillin","Total",2156,1394,64.6567718,62.638908186,66.674635413
+"IND",2021,"BLOOD","Staphylococcus aureus","Methicillin","Total",8130,4526,55.670356704,54.590490576,56.750222832
+"IND",2022,"BLOOD","Staphylococcus aureus","Methicillin","Total",9245,5071,54.851270957,53.836848802,55.865693113
+"IND",2023,"BLOOD","Staphylococcus aureus","Methicillin","Total",8373,4486,53.576973606,52.508727448,54.645219764

@@ -33,7 +33,7 @@ def load_icmr():
 
 @st.cache_data
 def load_glass():
-    p = "GitHub compiled dataset (easiest for ML)/compiled_WHO_GLASS_2022.xlsx"
+    p = "Dataset/GitHub compiled dataset (easiest for ML)/compiled_WHO_GLASS_2022.xlsx"
     if not os.path.exists(p): return None
     df = pd.read_excel(p, engine="openpyxl")
     return df[df["CountryTerritoryArea"].str.contains("India", case=False, na=False)].copy()
@@ -41,7 +41,7 @@ def load_glass():
 @st.cache_data
 def load_resistance_2023():
     """Load all 3 Resistance_to_individual_antibiotics CSVs from GLASS Dashboard folder."""
-    folder = "."
+    folder = "Dataset/GLASS Interactive Dashboard"
     pattern = os.path.join(folder, "Resistance_to_individual_antibiotics*.csv")
     files = sorted(glob.glob(pattern))
     frames = []
@@ -68,7 +68,7 @@ def load_resistance_2023():
 @st.cache_data
 def load_sdg():
     """Load both SDG trend CSVs."""
-    folder = "."
+    folder = "Dataset/GLASS Interactive Dashboard"
     ecoli = os.path.join(folder, "SDG-AMR-indicators_2016-2023-Escherichia_coli-Third-generation_cephalosporins.csv")
     staph = os.path.join(folder, "SDG-AMR-indicators_2016-2023-Staphylococcus_aureus-Methicillin.csv")
     frames = []
@@ -88,7 +88,7 @@ def load_sdg():
 @st.cache_data
 def load_genomic():
     """Load Kaggle genomic dataset."""
-    p = "antimicrobial_resistance_csv.csv"
+    p = "Dataset/antimicrobial_resistance_csv.csv"
     if not os.path.exists(p): return None
     df = pd.read_csv(p)
     # drug class resistance columns
@@ -355,7 +355,7 @@ with tab2:
 # ─────────────────────────────────────────────────────────────────────────────
 with tab3:
     if genomic_df is None:
-        st.error("antimicrobial_resistance_csv.csv not found in project root.")
+        st.error("Dataset/antimicrobial_resistance_csv.csv not found.")
     else:
         st.markdown("### Genomic Resistance Profile — *E. coli* isolates (n=50)")
         st.caption("Source: Kaggle AMR genomic dataset · All isolates are Escherichia coli · Gene presence = binary (0/1)")

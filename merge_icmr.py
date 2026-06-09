@@ -15,7 +15,7 @@ os.makedirs("processed", exist_ok=True)
 
 # ── 1. Load all 4 tables ──────────────────────────────────────────────────────
 print("Loading Stata files...")
-BASE = "ICMR Data Portal (primary source)/"
+BASE = "Dataset/ICMR Data Portal (primary source)/"
 patient,  pm   = pyreadstat.read_dta(BASE + "1751622124_patient_repos.dta",        apply_value_formats=False)
 hospital, hm   = pyreadstat.read_dta(BASE + "1751622145_hospital_repos.dta",       apply_value_formats=False)
 sample,   sm   = pyreadstat.read_dta(BASE + "1751622161_sample_repos.dta",         apply_value_formats=False)

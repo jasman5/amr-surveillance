@@ -177,51 +177,115 @@ with tab1:
     elif filtered.empty:
         st.warning("No data matches current filters.")
     else:
-        r1c1, r1c2 = st.columns(2)
-        with r1c1:
-            st.markdown('<p class="section-title">Resistance by Organism</p>', unsafe_allow_html=True)
-            fig = px.bar(
-                filtered.groupby(["organism_name","resistance"]).size().reset_index(name="n"),
-                x="organism_name", y="n", color="resistance", barmode="stack",
-                color_discrete_map={"Resistant":"#f72585","Susceptible":"#4cc9f0","Intermediate":"#f8961e","Unknown":"#555"},
-                labels={"organism_name":"Organism","n":"Isolates","resistance":""},
-            )
-            fig.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                              legend_orientation="h",xaxis_tickangle=-30,margin=dict(t=10,b=0))
-            st.plotly_chart(fig, use_container_width=True)
+      r1c1, r1c2 = st.columns(2)
 
-        with r1c2:
-            st.markdown('<p class="section-title">Resistance by Ward Type</p>', unsafe_allow_html=True)
-            fig2 = px.bar(
-                filtered.groupby(["ward_name","resistance"]).size().reset_index(name="n"),
-                x="ward_name", y="n", color="resistance", barmode="group",
-                color_discrete_map={"Resistant":"#f72585","Susceptible":"#4cc9f0","Intermediate":"#f8961e","Unknown":"#555"},
-                labels={"ward_name":"Ward","n":"Isolates","resistance":""},
-            )
-            fig2.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                               legend_orientation="h",margin=dict(t=10,b=0))
-            st.plotly_chart(fig2, use_container_width=True)
+    with r1c1:
+        st.markdown(
+            '<p class="section-title">Resistance by Organism</p>',
+            unsafe_allow_html=True
+        )
 
-        # Antibiogram heatmap
-        st.markdown('<p class="section-title">Antibiogram Heatmap — % Resistant (organism × antibiotic)</p>', unsafe_allow_html=True)
-        ab_data = filtered[filtered["resistance"].isin(["Resistant","Susceptible"])]
-        if not ab_data.empty:
-            pivot = (
-                ab_data.groupby(["organism_name","antibiotic_name"])
-                .apply(lambda x: round(100*(x["resistance"]=="Resistant").sum()/len(x),1))
-                .reset_index(name="pct")
-                .pivot(index="organism_name", columns="antibiotic_name", values="pct")
-            )
-            fig3 = px.imshow(pivot,
-                color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
-                zmin=0, zmax=100, labels=dict(color="% R"), aspect="auto")
-            fig3.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                               xaxis_tickangle=-40,margin=dict(t=10,b=0),
-                               coloraxis_colorbar=dict(title="% R"))
-            st.plotly_chart(fig3, use_container_width=True)
+        org_df = (
+            filtered.groupby(["organism_name", "resistance"])
+            .size()
+            .reset_index(name="n")
+        )
 
-        r2c1, r2c2, r2c3 = st.columns(3)
-        with r2c1:
+        org_df["organism_name"] = org_df["organism_name"].replace({
+            "Acinetobacter baumannii": "A. baumannii",
+            "Pseudomonas aeruginosa": "P. aeruginosa",
+            "Klebsiella pneumoniae": "K. pneumoniae",
+            "Escherichia coli": "E. coli",
+            "Burkholderia cepacia complex": "B. cepacia"
+        })
+
+        fig = px.bar(
+            org_df,
+            x="organism_name",
+            y="n",
+            color="resistance",
+            barmode="stack",
+            color_discrete_map={
+                "Resistant": "#f72585",
+                "Susceptible": "#4cc9f0",
+                "Intermediate": "#f8961e",
+                "Unknown": "#555"
+            },
+            labels={
+                "organism_name": "Organism",
+                "n": "Isolates",
+                "resistance": ""
+            },
+        )
+
+        fig.update_layout(
+            plot_bgcolor="#0f1117",
+            paper_bgcolor="#0f1117",
+            font_color="#c9d1d9",
+            height=750,
+            margin=dict(l=40, r=40, t=40, b=220),
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="center",
+                x=0.5
+            )
+        )
+
+        fig.update_xaxes(
+            tickangle=-45,
+            automargin=True
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    with r1c2:
+        st.markdown(
+            '<p class="section-title">Resistance by Ward Type</p>',
+            unsafe_allow_html=True
+        )
+
+        fig2 = px.bar(
+            filtered.groupby(["ward_name", "resistance"])
+            .size()
+            .reset_index(name="n"),
+            x="ward_name",
+            y="n",
+            color="resistance",
+            barmode="group",
+            color_discrete_map={
+                "Resistant": "#f72585",
+                "Susceptible": "#4cc9f0",
+                "Intermediate": "#f8961e",
+                "Unknown": "#555"
+            },
+            labels={
+                "ward_name": "Ward",
+                "n": "Isolates",
+                "resistance": ""
+            },
+        )
+
+        fig2.update_layout(
+            plot_bgcolor="#0f1117",
+            paper_bgcolor="#0f1117",
+            font_color="#c9d1d9",
+            height=650,
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="center",
+                x=0.5
+            ),
+            margin=dict(t=20, b=100)
+        )
+
+        st.plotly_chart(fig2, use_container_width=True)
+
+    r2c1, r2c2, r2c3 = st.columns(3)
+    with r2c1:
             st.markdown('<p class="section-title">Isolates by State</p>', unsafe_allow_html=True)
             sc = filtered["state_name"].value_counts().reset_index()
             sc.columns = ["State","n"]
@@ -231,7 +295,7 @@ with tab1:
                                showlegend=False,coloraxis_showscale=False,margin=dict(t=10,b=0))
             st.plotly_chart(fig4, use_container_width=True)
 
-        with r2c2:
+    with r2c2:
             st.markdown('<p class="section-title">Infection Acquisition</p>', unsafe_allow_html=True)
             ic = filtered["infection_type"].value_counts().reset_index()
             ic.columns = ["Type","n"]
@@ -241,7 +305,7 @@ with tab1:
                                margin=dict(t=10,b=0),legend=dict(orientation="h",y=-0.15))
             st.plotly_chart(fig5, use_container_width=True)
 
-        with r2c3:
+    with r2c3:
             st.markdown('<p class="section-title">Sample Type</p>', unsafe_allow_html=True)
             samp = filtered["sample_type_name"].value_counts().reset_index()
             samp.columns = ["Sample","n"]
@@ -251,7 +315,7 @@ with tab1:
                                margin=dict(t=10,b=0))
             st.plotly_chart(fig6, use_container_width=True)
 
-        with st.expander("Raw data"):
+    with st.expander("Raw data"):
             show = ["organism_name","antibiotic_name","resistance","state_name",
                     "ward_name","infection_type","sample_type_name","age","gender_label","dept_name"]
             st.dataframe(filtered[show].reset_index(drop=True), use_container_width=True)

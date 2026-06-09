@@ -1,66 +1,101 @@
+"""
+train_model.py — Clinical Resistance Predictor (Engine 1)
+Trains a Random Forest on ICMR patient-level clinical features.
+Target: is_resistant (1 = Resistant, 0 = Susceptible)
+Intermediate isolates excluded from training.
+
+Run AFTER merge_icmr.py
+Output: processed/clinical_model.pkl + processed/model_meta.pkl
+"""
+
 import pandas as pd
 import numpy as np
-import os
 import pickle
-from sklearn.model_selection import train_test_split
+import os
+import warnings
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedKFold, cross_validate
 
-print("🤖 Initializing AI Model Training Pipeline...")
+warnings.filterwarnings("ignore")
+os.makedirs("processed", exist_ok=True)
 
-# Paths to the advanced feature files
-features_path = "processed/amr_dataset_variable_features.csv"
-prefixed_path = "processed/amr_dataset_final_prefixed.csv"
+# ── 1. Load merged ICMR data ──────────────────────────────────────────────────
+print("Loading processed/master_amr_icmr.csv ...")
+df = pd.read_csv("processed/master_amr_icmr.csv")
 
-if os.path.exists(features_path) and os.path.exists(prefixed_path):
-    try:
-        # Load the feature matrices
-        df_feat = pd.read_csv(features_path)
-        df_pref = pd.read_csv(prefixed_path)
-        
-        # Combine or find target variable. Assuming 'value' or binary resistance marker exists.
-        # As a robust fallback for the dashboard layout, we establish a lightweight predictor matrix
-        X = df_pref.select_dtypes(include=[np.number])
-        
-        # Heuristic target selection: look for common target markers
-        target_col = next((c for c in ['is_resistant', 'value', 'Resistant'] if c in df_pref.columns), None)
-        
-        if target_col:
-            y = df_pref[target_col]
-            if y.dtype == object:
-                y = y.astype('category').cat.codes
-        else:
-            # Fallback mock target if the matrix is purely features to avoid crashing
-            np.random.seed(42)
-            y = np.random.choice([0, 1], size=len(X))
-            
-        # Drop target if it sneaked into features
-        if target_col in X.columns:
-            X = X.drop(columns=[target_col])
+# Keep only Susceptible (0) and Resistant (1) — drop Intermediate
+df_train = df[df["is_resistant"].notna()].copy()
+df_train["is_resistant"] = df_train["is_resistant"].astype(int)
 
-        # Train/Test Split
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-        # Train Model
-        model = RandomForestClassifier(n_estimators=100, random_state=42)
-        model.fit(X_train, y_train)
-        
-        # Save model and columns configuration for Streamlit deployment
-        os.makedirs("processed", exist_ok=True)
-        with open("processed/amr_predictor_model.pkl", "wb") as f:
-            pickle.dump(model, f)
-            
-        # Keep a list of feature columns
-        feature_columns = list(X.columns)
-        with open("processed/model_features.pkl", "wb") as f:
-            pickle.dump(feature_columns, f)
-            
-        print(f"🎉 Model Trained Successfully! Features shape matched: {X.shape}")
-        print("💾 Artifacts saved: processed/amr_predictor_model.pkl")
-        
-    except Exception as e:
-        print(f"⚠️ Complex matrix alignment needed: {e}. Generating optimized modeling fallback artifact.")
-        # Fail-safe model generation to ensure your dashboard code doesn't break
-        with open("processed/amr_predictor_model.pkl", "wb") as f: pickle.dump(None, f)
-else:
-    print("ℹ️ Advanced feature files not directly loaded. Creating optimized visual model mapping.")
-    with open("processed/amr_predictor_model.pkl", "wb") as f: pickle.dump(None, f)
+print(f"Training rows : {len(df_train)}  (Resistant: {df_train['is_resistant'].sum()} | Susceptible: {(df_train['is_resistant']==0).sum()})")
+
+# ── 2. Features and target ────────────────────────────────────────────────────
+FEATURES = [
+    "age",
+    "gender",
+    "ward_type",
+    "infection_type_id",
+    "organism_id",
+    "hospital_dept_id",
+    "sample_type_id",
+    "antibiotic_id",
+]
+
+X = df_train[FEATURES].fillna(df_train[FEATURES].median())
+y = df_train["is_resistant"]
+
+# ── 3. Cross-validation ───────────────────────────────────────────────────────
+print("\nRunning 5-fold stratified cross-validation ...")
+clf = RandomForestClassifier(
+    n_estimators=150,
+    max_depth=5,
+    class_weight="balanced",
+    random_state=42,
+    n_jobs=-1,
+)
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+results = cross_validate(clf, X, y, cv=cv, scoring=["accuracy", "f1", "roc_auc"])
+
+print("\n=== CROSS-VALIDATION RESULTS ===")
+print(f"  Accuracy : {np.mean(results['test_accuracy']):.3f} ± {np.std(results['test_accuracy']):.3f}")
+print(f"  F1 Score : {np.mean(results['test_f1']):.3f} ± {np.std(results['test_f1']):.3f}")
+print(f"  ROC-AUC  : {np.mean(results['test_roc_auc']):.3f} ± {np.std(results['test_roc_auc']):.3f}")
+
+# ── 4. Train final model on all data ─────────────────────────────────────────
+clf.fit(X, y)
+
+print("\n=== FEATURE IMPORTANCES ===")
+for feat, imp in sorted(zip(FEATURES, clf.feature_importances_), key=lambda x: -x[1]):
+    print(f"  {feat:<22} {imp:.4f}")
+
+# ── 5. Save model ─────────────────────────────────────────────────────────────
+with open("processed/clinical_model.pkl", "wb") as f:
+    pickle.dump(clf, f)
+
+# ── 6. Save metadata for dashboard ───────────────────────────────────────────
+meta = {
+    "clinical_features": FEATURES,
+    "metrics": {
+        "clinical": {
+            "accuracy": float(np.mean(results["test_accuracy"])),
+            "f1":       float(np.mean(results["test_f1"])),
+            "roc_auc":  float(np.mean(results["test_roc_auc"])),
+        }
+    },
+    "importances": {
+        "clinical": dict(zip(FEATURES, clf.feature_importances_.tolist()))
+    },
+    "organism":    dict(df_train[["organism_id",    "organism_name"   ]].dropna().drop_duplicates().values.tolist()),
+    "antibiotic":  dict(df_train[["antibiotic_id",  "antibiotic_name" ]].dropna().drop_duplicates().values.tolist()),
+    "ward":        {1: "ICU", 2: "OPD", 3: "Ward"},
+    "infection":   {1: "Community Acquired", 2: "Healthcare Associated", 3: "Not Known"},
+    "dept":        dict(df_train[["hospital_dept_id", "dept_name"      ]].dropna().drop_duplicates().values.tolist()),
+    "sample_type": dict(df_train[["sample_type_id",   "sample_type_name"]].dropna().drop_duplicates().values.tolist()),
+}
+
+with open("processed/model_meta.pkl", "wb") as f:
+    pickle.dump(meta, f)
+
+print("\nSaved: processed/clinical_model.pkl")
+print("Saved: processed/model_meta.pkl")
+print("\nDone. Run dashboard.py next.")

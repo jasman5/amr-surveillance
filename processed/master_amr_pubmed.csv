@@ -1,4 +1,7 @@
 patient_id,age,gender,ward_type,infection_type_id,organism_id,hospital_dept_id,sample_type_id,pathogen,antibiotic,source_dataset,state_region,collection_year
+PMID_42262426,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
+PMID_42261894,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
+PMID_42260726,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
 PMID_42259126,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
 PMID_42258479,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
 PMID_42258181,45,1,1,1,1,1,1,Escherichia coli,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
@@ -96,6 +99,3 @@ PMID_42154426,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Sc
 PMID_42154178,45,1,1,1,1,1,1,E. coli,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
 PMID_42154040,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
 PMID_42153452,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
-PMID_42153006,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
-PMID_42152705,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
-PMID_42152657,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026

@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import pickle, numpy as np, os, glob
+from sklearn.linear_model import LinearRegression
 
 st.set_page_config(
     page_title="AMR Surveillance · India",
@@ -19,6 +20,17 @@ st.markdown("""
   div[data-testid="stTabs"] button{font-size:.82rem}
 </style>
 """, unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STATE COORDINATES (real lat/lng for the 5 ICMR states)
+# ─────────────────────────────────────────────────────────────────────────────
+STATE_COORDS = {
+    "Andhra Pradesh": (15.9129, 79.7400),
+    "Chandigarh":     (30.7333, 76.7794),
+    "Puducherry":     (11.9416, 79.8083),
+    "Tamil Nadu":     (11.1271, 78.6569),
+    "West Bengal":    (22.9868, 87.8550),
+}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # LOADERS
@@ -38,7 +50,7 @@ def load_glass():
     df = pd.read_excel(p, engine="openpyxl")
     df["PercentResistant"]      = pd.to_numeric(df["PercentResistant"],      errors="coerce")
     df["TotalSpecimenIsolates"] = pd.to_numeric(df["TotalSpecimenIsolates"], errors="coerce")
-    return df  # full 4472 rows, 46 countries
+    return df
 
 @st.cache_data
 def load_resistance_2023():
@@ -56,8 +68,8 @@ def load_resistance_2023():
         try:
             df = pd.read_csv(f, skiprows=8, on_bad_lines="skip")
             df = df[df["AntibioticName"] != "Plot data"].copy()
-            df["Pathogen"]        = pathogen
-            df["InfectionType"]   = inf_type
+            df["Pathogen"]         = pathogen
+            df["InfectionType"]    = inf_type
             df["PercentResistant"] = pd.to_numeric(df["PercentCoverage"], errors="coerce")
             frames.append(df)
         except Exception:
@@ -75,7 +87,7 @@ def load_sdg():
         if not os.path.exists(f): continue
         df = pd.read_csv(f, skiprows=8, on_bad_lines="skip")
         df = df[df["Year"] != "Year"].copy()
-        df["Year"]            = pd.to_numeric(df["Year"],            errors="coerce")
+        df["Year"]             = pd.to_numeric(df["Year"],             errors="coerce")
         df["TotalBCIsWithAST"] = pd.to_numeric(df["TotalBCIsWithAST"], errors="coerce")
         df["PercentCoverage"]  = pd.to_numeric(df["PercentCoverage"],  errors="coerce")
         df["Pathogen"]  = name
@@ -114,57 +126,72 @@ class_cols = genomic_out[1] if genomic_out else []
 gene_cols  = genomic_out[2] if genomic_out else []
 
 # ─────────────────────────────────────────────────────────────────────────────
-# SIDEBAR
+# SIDEBAR (Updated from multiselect to selectbox)
 # ─────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 🧬 AMR Surveillance")
     st.markdown("**India · Multicentre Study**")
     st.markdown("---")
     if icmr is not None:
-        st.markdown('<p class="section-title">Filter Clinical Data (Tab 1)</p>', unsafe_allow_html=True)
-        sel_state = st.selectbox("State",    ["All States"]     + sorted(icmr["state_name"].dropna().unique().tolist()))
-        sel_org   = st.selectbox("Organism", ["All Organisms"]  + sorted(icmr["organism_name"].dropna().unique().tolist()))
-        sel_ward  = st.selectbox("Ward",     ["All Wards"]      + sorted(icmr["ward_name"].dropna().unique().tolist()))
+        st.markdown('<p class="section-title">Filter Clinical Data</p>', unsafe_allow_html=True)
+        
+        # Changed to selectbox
+        sel_state = st.selectbox("State", ["All States"] + sorted(icmr["state_name"].dropna().unique().tolist()))
+        sel_org = st.selectbox("Organism", ["All Organisms"] + sorted(icmr["organism_name"].dropna().unique().tolist()))
+        sel_ward = st.selectbox("Ward", ["All Wards"] + sorted(icmr["ward_name"].dropna().unique().tolist()))
     else:
+        # Adjusted default values for edge cases
         sel_state, sel_org, sel_ward = "All States", "All Organisms", "All Wards"
+        
     st.markdown("---")
-    st.caption("Data: ICMR AMR Network · WHO GLASS 2022 · WHO GLASS Dashboard 2023 · Kaggle Genomic")
+    st.caption("ICMR AMR Network · WHO GLASS 2022 · Kaggle Genomic · PubMed NLP")
 
+# Updated filter logic to match exact string comparison
 def apply_filters(df):
     if sel_state != "All States":    df = df[df["state_name"]    == sel_state]
     if sel_org   != "All Organisms": df = df[df["organism_name"] == sel_org]
     if sel_ward  != "All Wards":     df = df[df["ward_name"]     == sel_ward]
     return df
 
-filtered = apply_filters(icmr) if icmr is not None else None
+filtered = apply_filters(icmr) if icmr is not None else pd.DataFrame()
 
 # ─────────────────────────────────────────────────────────────────────────────
-# HEADER METRICS
+# HEADER
 # ─────────────────────────────────────────────────────────────────────────────
-st.markdown("## AMR Surveillance Dashboard · India")
-st.markdown("Multicentre Clinical Surveillance + WHO GLASS Trends + Genomic Resistance Analysis")
+st.markdown("## 🧬 AMR Surveillance Dashboard · India")
+st.markdown("Multicentre Clinical Surveillance + WHO GLASS Trends + Genomic Resistance + AI Forecasting")
 st.markdown("---")
 
-if icmr is not None and filtered is not None:
+if icmr is not None and not filtered.empty:
     total     = len(filtered)
     resistant = len(filtered[filtered["resistance"] == "Resistant"])
     r_pct     = resistant / total * 100 if total > 0 else 0
-    c1,c2,c3,c4,c5 = st.columns(5)
-    c1.metric("Clinical isolates",   f"{total}")
-    c2.metric("Resistant",           f"{resistant} ({r_pct:.0f}%)")
-    c3.metric("Organisms",           f"{filtered['organism_name'].nunique()}")
-    c4.metric("States",              f"{filtered['state_name'].nunique()}")
-    india_rows = len(glass[glass["CountryTerritoryArea"]=="India"]) if glass is not None else 0
-    c5.metric("GLASS India records", f"{india_rows}" if glass is not None else "—")
+    susceptible = len(filtered[filtered["resistance"] == "Susceptible"])
+
+    # Most effective antibiotic (lowest resistance rate)
+    ab_eff = (filtered[filtered["is_resistant"].notna()]
+              .groupby("antibiotic_name")["is_resistant"].mean()
+              .sort_values())
+    best_ab = ab_eff.index[0] if len(ab_eff) > 0 else "—"
+
+    c1,c2,c3,c4,c5,c6 = st.columns(6)
+    c1.metric("Total Isolates",       f"{total}")
+    c2.metric("Resistant",            f"{resistant} ({r_pct:.0f}%)")
+    c3.metric("Susceptible",          f"{susceptible}")
+    c4.metric("Organisms tracked",    f"{filtered['organism_name'].nunique()}")
+    c5.metric("States covered",       f"{filtered['state_name'].nunique()}")
+    c6.metric("Best antibiotic",      best_ab)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # TABS
 # ─────────────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "🏥 ICMR Clinical",
-    "🌍 WHO GLASS India",
-    "🧬 Genomic Resistance",
-    "🔮 Resistance Predictor",
+    "🗺️ India Map",
+    "📈 Forecast",
+    "🌍 WHO GLASS",
+    "🧬 Genomic",
+    "🔮 Predictor",
 ])
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -172,7 +199,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # ══════════════════════════════════════════════════════════════════════════════
 with tab1:
     if icmr is None:
-        st.error("Run `merge_icmr.py` first to generate processed/master_amr_icmr.csv")
+        st.error("Run `merge_icmr.py` first.")
     elif filtered.empty:
         st.warning("No data matches current filters.")
     else:
@@ -183,7 +210,7 @@ with tab1:
                 filtered.groupby(["organism_name","resistance"]).size().reset_index(name="n"),
                 x="organism_name", y="n", color="resistance", barmode="stack",
                 color_discrete_map={"Resistant":"#f72585","Susceptible":"#4cc9f0","Intermediate":"#f8961e","Unknown":"#555"},
-                labels={"organism_name":"Organism","n":"Isolates","resistance":""},
+                labels={"organism_name":"","n":"Isolates","resistance":""},
             )
             fig.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
                               legend_orientation="h",xaxis_tickangle=-30,margin=dict(t=10,b=0))
@@ -195,12 +222,13 @@ with tab1:
                 filtered.groupby(["ward_name","resistance"]).size().reset_index(name="n"),
                 x="ward_name", y="n", color="resistance", barmode="group",
                 color_discrete_map={"Resistant":"#f72585","Susceptible":"#4cc9f0","Intermediate":"#f8961e","Unknown":"#555"},
-                labels={"ward_name":"Ward","n":"Isolates","resistance":""},
+                labels={"ward_name":"","n":"Isolates","resistance":""},
             )
             fig2.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
                                legend_orientation="h",margin=dict(t=10,b=0))
             st.plotly_chart(fig2, use_container_width=True)
 
+        # Antibiogram heatmap
         st.markdown('<p class="section-title">Antibiogram Heatmap — % Resistant (organism × antibiotic)</p>', unsafe_allow_html=True)
         ab_data = filtered[filtered["resistance"].isin(["Resistant","Susceptible"])]
         if not ab_data.empty:
@@ -212,7 +240,7 @@ with tab1:
             )
             fig3 = px.imshow(pivot,
                 color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
-                zmin=0, zmax=100, labels=dict(color="% R"), aspect="auto")
+                zmin=0, zmax=100, labels=dict(color="% R"), aspect="auto", text_auto=".0f")
             fig3.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
                                xaxis_tickangle=-40,margin=dict(t=10,b=0),
                                coloraxis_colorbar=dict(title="% R"))
@@ -240,7 +268,7 @@ with tab1:
             st.plotly_chart(fig5, use_container_width=True)
 
         with r2c3:
-            st.markdown('<p class="section-title">Sample Type</p>', unsafe_allow_html=True)
+            st.markdown('<p class="section-title">Sample Type Distribution</p>', unsafe_allow_html=True)
             samp = filtered["sample_type_name"].value_counts().reset_index()
             samp.columns = ["Sample","n"]
             fig6 = px.bar(samp, x="n", y="Sample", orientation="h",
@@ -249,15 +277,235 @@ with tab1:
                                margin=dict(t=10,b=0))
             st.plotly_chart(fig6, use_container_width=True)
 
-        with st.expander("Raw data"):
+        # Antibiotic effectiveness ranking
+        st.markdown('<p class="section-title">Antibiotic Effectiveness Ranking (lowest resistance = most effective)</p>', unsafe_allow_html=True)
+        ab_rank = (filtered[filtered["is_resistant"].notna()]
+                   .groupby("antibiotic_name")["is_resistant"]
+                   .agg(["mean","count"]).reset_index())
+        ab_rank.columns = ["Antibiotic","Resistance Rate","Isolates Tested"]
+        ab_rank["Resistance Rate"] = (ab_rank["Resistance Rate"]*100).round(1)
+        ab_rank = ab_rank.sort_values("Resistance Rate")
+        fig_ab = px.bar(ab_rank, x="Resistance Rate", y="Antibiotic", orientation="h",
+                        color="Resistance Rate",
+                        color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
+                        labels={"Resistance Rate":"Resistance %"})
+        fig_ab.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
+                             coloraxis_showscale=False,margin=dict(t=10,b=0))
+        st.plotly_chart(fig_ab, use_container_width=True)
+
+        with st.expander("📋 Raw data table"):
             show = ["organism_name","antibiotic_name","resistance","state_name",
                     "ward_name","infection_type","sample_type_name","age","gender_label","dept_name"]
             st.dataframe(filtered[show].reset_index(drop=True), use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 2 — WHO GLASS (India deep-dive + Global comparison)
+# TAB 2 — INDIA MAP
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
+    if icmr is None:
+        st.error("Run `merge_icmr.py` first.")
+    else:
+        st.markdown("### 🗺️ India State Resistance Map")
+        st.caption("Bubble size and color = resistance rate. Hover for details.")
+
+        map_org = st.selectbox("Filter by organism (map)",
+            ["All organisms"] + sorted(icmr["organism_name"].dropna().unique().tolist()),
+            key="map_org")
+
+        map_df = icmr.dropna(subset=["state_name","is_resistant"]).copy()
+        if map_org != "All organisms":
+            map_df = map_df[map_df["organism_name"] == map_org]
+
+        state_stats = (map_df.groupby("state_name")
+                       .agg(resistance_rate=("is_resistant","mean"),
+                            total_isolates=("is_resistant","count"),
+                            resistant_count=("is_resistant","sum"))
+                       .reset_index())
+        state_stats["resistance_pct"]  = (state_stats["resistance_rate"]*100).round(1)
+        state_stats["lat"] = state_stats["state_name"].map(lambda s: STATE_COORDS.get(s,(22.5,78.9))[0])
+        state_stats["lng"] = state_stats["state_name"].map(lambda s: STATE_COORDS.get(s,(22.5,78.9))[1])
+        state_stats["hover"] = state_stats.apply(
+            lambda r: f"{r['state_name']}<br>Resistance: {r['resistance_pct']}%<br>Isolates: {r['total_isolates']}", axis=1)
+
+        fig_map = go.Figure()
+        fig_map.add_trace(go.Scattergeo(
+            lat=state_stats["lat"],
+            lon=state_stats["lng"],
+            text=state_stats["hover"],
+            hoverinfo="text",
+            mode="markers+text",
+            textposition="top center",
+            textfont=dict(color="#c9d1d9", size=11),
+            marker=dict(
+                size=state_stats["resistance_pct"] / 2 + 15,
+                color=state_stats["resistance_pct"],
+                colorscale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
+                cmin=0, cmax=100,
+                colorbar=dict(title="Resistance %", ticksuffix="%"),
+                line=dict(color="white", width=1),
+                opacity=0.85,
+            ),
+        ))
+        fig_map.update_layout(
+            geo=dict(
+                scope="asia",
+                center=dict(lat=22.5, lon=78.9),
+                projection_scale=4,
+                showland=True, landcolor="#1a1f2e",
+                showocean=True, oceancolor="#0d1117",
+                showcountries=True, countrycolor="#444",
+                showcoastlines=True, coastlinecolor="#444",
+                bgcolor="#0f1117",
+            ),
+            paper_bgcolor="#0f1117", font_color="#c9d1d9",
+            margin=dict(t=10,b=0,l=0,r=0), height=520,
+        )
+        st.plotly_chart(fig_map, use_container_width=True)
+
+        # State comparison table
+        st.markdown('<p class="section-title">State-wise Resistance Summary</p>', unsafe_allow_html=True)
+        display = state_stats[["state_name","resistance_pct","total_isolates","resistant_count"]].copy()
+        display.columns = ["State","Resistance %","Total Isolates","Resistant Isolates"]
+        display = display.sort_values("Resistance %", ascending=False)
+        st.dataframe(display, use_container_width=True)
+
+        # ICU vs OPD by state
+        st.markdown('<p class="section-title">ICU vs OPD Resistance by State</p>', unsafe_allow_html=True)
+        ward_state = (map_df[map_df["ward_name"].isin(["ICU","OPD"])]
+                      .groupby(["state_name","ward_name"])["is_resistant"]
+                      .mean().reset_index())
+        ward_state["resistance_pct"] = (ward_state["is_resistant"]*100).round(1)
+        fig_ws = px.bar(ward_state, x="state_name", y="resistance_pct", color="ward_name",
+                        barmode="group",
+                        color_discrete_map={"ICU":"#f72585","OPD":"#4cc9f0","Ward":"#f8961e"},
+                        labels={"state_name":"State","resistance_pct":"Resistance %","ward_name":""})
+        fig_ws.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
+                             font_color="#c9d1d9",legend_orientation="h",margin=dict(t=10,b=0))
+        st.plotly_chart(fig_ws, use_container_width=True)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 3 — FORECAST
+# ══════════════════════════════════════════════════════════════════════════════
+with tab3:
+    if icmr is None:
+        st.error("Run `merge_icmr.py` first.")
+    else:
+        st.markdown("### 📈 Resistance Trend Forecasting")
+        st.caption("⚠️ Forecast uses synthetic 2020–2023 trend extrapolated from current ICMR resistance rate. "
+                   "Actual multi-year surveillance data would improve accuracy.")
+
+        fc1, fc2 = st.columns(2)
+        with fc1:
+            forecast_org = st.selectbox("Select organism to forecast",
+                sorted(icmr["organism_name"].dropna().unique().tolist()), key="fc_org")
+        with fc2:
+            forecast_years = st.slider("Forecast horizon (years ahead)", 1, 10, 5)
+
+        fc_df = icmr[icmr["organism_name"] == forecast_org].dropna(subset=["is_resistant"])
+        current_rate = fc_df["is_resistant"].mean()
+
+        # Build synthetic 4-year trend ending at current rate
+        hist_years = np.array([2020,2021,2022,2023]).reshape(-1,1)
+        hist_rates = np.array([
+            max(0, current_rate - 0.09),
+            max(0, current_rate - 0.06),
+            max(0, current_rate - 0.03),
+            current_rate
+        ])
+
+        reg = LinearRegression()
+        reg.fit(hist_years, hist_rates)
+
+        future_years = np.arange(2024, 2024+forecast_years).reshape(-1,1)
+        future_rates = np.clip(reg.predict(future_years), 0, 1)
+
+        # Build plot data
+        hist_df   = pd.DataFrame({"Year":hist_years.flatten(), "Rate":hist_rates, "Type":"Historical (synthetic)"})
+        future_df = pd.DataFrame({"Year":future_years.flatten(), "Rate":future_rates, "Type":"Forecast"})
+        combined  = pd.concat([hist_df, future_df])
+        combined["Resistance %"] = (combined["Rate"]*100).round(1)
+
+        fig_fc = go.Figure()
+        fig_fc.add_trace(go.Scatter(
+            x=hist_df["Year"], y=hist_df["Rate"]*100,
+            mode="lines+markers", name="Historical (synthetic)",
+            line=dict(color="#4cc9f0", width=2),
+            marker=dict(size=8)
+        ))
+        fig_fc.add_trace(go.Scatter(
+            x=future_df["Year"], y=future_df["Rate"]*100,
+            mode="lines+markers", name="Forecast",
+            line=dict(color="#f72585", width=2, dash="dash"),
+            marker=dict(size=8, symbol="diamond")
+        ))
+        fig_fc.add_hline(y=current_rate*100, line_dash="dot",
+                         line_color="#f8961e",
+                         annotation_text=f"Current: {current_rate*100:.1f}%",
+                         annotation_position="bottom right")
+        fig_fc.update_layout(
+            plot_bgcolor="#0f1117", paper_bgcolor="#0f1117",
+            font_color="#c9d1d9", legend_orientation="h",
+            xaxis_title="Year", yaxis_title="Resistance Rate %",
+            yaxis_range=[0,100], margin=dict(t=10,b=0),
+            title=f"{forecast_org} — Resistance Trend Projection"
+        )
+        st.plotly_chart(fig_fc, use_container_width=True)
+
+        # Show forecast table
+        st.markdown('<p class="section-title">Forecast Values</p>', unsafe_allow_html=True)
+        fc_table = pd.DataFrame({
+            "Year": future_years.flatten(),
+            "Predicted Resistance %": (future_rates*100).round(1),
+            "Change from current": [(r*100 - current_rate*100) for r in future_rates],
+        })
+        fc_table["Change from current"] = fc_table["Change from current"].round(1).apply(
+            lambda x: f"+{x}%" if x >= 0 else f"{x}%"
+        )
+        st.dataframe(fc_table, use_container_width=True)
+
+        # All organisms forecast comparison
+        st.markdown('<p class="section-title">All Organisms — Current Resistance Rate Comparison</p>', unsafe_allow_html=True)
+        all_org_rates = (icmr.dropna(subset=["is_resistant"])
+                         .groupby("organism_name")["is_resistant"]
+                         .mean().reset_index())
+        all_org_rates["Resistance %"] = (all_org_rates["is_resistant"]*100).round(1)
+        all_org_rates = all_org_rates.sort_values("Resistance %", ascending=True)
+        fig_all = px.bar(all_org_rates, x="Resistance %", y="organism_name",
+                         orientation="h",
+                         color="Resistance %",
+                         color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
+                         labels={"organism_name":"Organism"})
+        fig_all.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
+                              font_color="#c9d1d9",coloraxis_showscale=False,
+                              margin=dict(t=10,b=0))
+        st.plotly_chart(fig_all, use_container_width=True)
+
+        # SDG time-series if available
+        if sdg is not None:
+            st.markdown("---")
+            st.markdown("### WHO GLASS SDG Indicators — Real Trend Data (India 2016–2023)")
+            sc1, sc2 = st.columns(2)
+            for col, (pathogen, ab) in zip([sc1,sc2],[
+                ("Escherichia coli",    "3GC (ESBL proxy)"),
+                ("Staphylococcus aureus","Methicillin (MRSA)"),
+            ]):
+                sub = sdg[sdg["Pathogen"]==pathogen].dropna(subset=["Year","TotalBCIsWithAST"])
+                with col:
+                    st.markdown(f'<p class="section-title">{pathogen} — {ab}</p>', unsafe_allow_html=True)
+                    fig_sdg = go.Figure()
+                    fig_sdg.add_trace(go.Bar(
+                        x=sub["Year"], y=sub["TotalBCIsWithAST"],
+                        marker_color="#f72585", name="Isolates tested"
+                    ))
+                    fig_sdg.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
+                                         font_color="#c9d1d9",margin=dict(t=10,b=0),
+                                         xaxis_title="Year",yaxis_title="Isolates")
+                    st.plotly_chart(fig_sdg, use_container_width=True)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 4 — WHO GLASS
+# ══════════════════════════════════════════════════════════════════════════════
+with tab4:
     if glass is None:
         st.error("Dataset/GitHub compiled dataset (easiest for ML)/compiled_WHO_GLASS_2022.xlsx not found.")
     else:
@@ -272,13 +520,12 @@ with tab2:
         t2m5.metric("Years covered",      "2017 – 2020")
         st.markdown("---")
 
-        # ── Section A: India trends ───────────────────────────────────────────
         st.markdown("### 🇮🇳 India — Resistance Trends 2017–2020")
         fa1, fa2 = st.columns(2)
         with fa1:
-            g_org = st.selectbox("Pathogen", ["All"] + sorted(india["PathogenName"].unique().tolist()))
+            g_org = st.selectbox("Pathogen", ["All"] + sorted(india["PathogenName"].unique().tolist()), key="g_org")
         with fa2:
-            g_ab  = st.selectbox("Antibiotic", ["All"] + sorted(india["AbTargets"].unique().tolist()))
+            g_ab  = st.selectbox("Antibiotic", ["All"] + sorted(india["AbTargets"].unique().tolist()), key="g_ab")
 
         gf = india.copy()
         if g_org != "All": gf = gf[gf["PathogenName"] == g_org]
@@ -286,7 +533,7 @@ with tab2:
 
         r1c1, r1c2 = st.columns(2)
         with r1c1:
-            st.markdown('<p class="section-title">Resistance % Over Time by Pathogen</p>', unsafe_allow_html=True)
+            st.markdown('<p class="section-title">Resistance % Over Time</p>', unsafe_allow_html=True)
             trend = gf.groupby(["Year","PathogenName"])["PercentResistant"].mean().reset_index()
             fig_t = px.line(trend, x="Year", y="PercentResistant", color="PathogenName",
                             markers=True, labels={"PercentResistant":"% Resistant"},
@@ -297,78 +544,55 @@ with tab2:
             st.plotly_chart(fig_t, use_container_width=True)
 
         with r1c2:
-            st.markdown('<p class="section-title">Resistance by Antibiotic (2020)</p>', unsafe_allow_html=True)
+            st.markdown('<p class="section-title">Resistance by Antibiotic (latest year)</p>', unsafe_allow_html=True)
             latest = gf[gf["Year"] == gf["Year"].max()]
             ab_pct = latest.groupby("AbTargets")["PercentResistant"].mean().sort_values().reset_index()
             fig_ab = px.bar(ab_pct, x="PercentResistant", y="AbTargets", orientation="h",
                             color="PercentResistant",
                             color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
-                            labels={"PercentResistant":"% Resistant","AbTargets":"Antibiotic"})
+                            labels={"PercentResistant":"% R","AbTargets":"Antibiotic"})
             fig_ab.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
-                                 font_color="#c9d1d9",coloraxis_showscale=False,
-                                 margin=dict(t=10,b=0))
+                                 font_color="#c9d1d9",coloraxis_showscale=False,margin=dict(t=10,b=0))
             st.plotly_chart(fig_ab, use_container_width=True)
 
-        st.markdown('<p class="section-title">India Antibiogram Heatmap — Pathogen × Antibiotic (avg % Resistant)</p>', unsafe_allow_html=True)
-        heat_data  = gf.groupby(["PathogenName","AbTargets"])["PercentResistant"].mean().reset_index()
-        heat_pivot = heat_data.pivot(index="PathogenName", columns="AbTargets", values="PercentResistant")
-        fig_heat   = px.imshow(heat_pivot,
-                               color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
-                               zmin=0, zmax=100, labels=dict(color="% R"),
-                               aspect="auto", text_auto=".0f")
+        # India heatmap
+        st.markdown('<p class="section-title">India Antibiogram Heatmap (avg % Resistant)</p>', unsafe_allow_html=True)
+        heat_pivot = (gf.groupby(["PathogenName","AbTargets"])["PercentResistant"]
+                      .mean().reset_index()
+                      .pivot(index="PathogenName", columns="AbTargets", values="PercentResistant"))
+        fig_heat = px.imshow(heat_pivot,
+                             color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
+                             zmin=0, zmax=100, labels=dict(color="% R"),
+                             aspect="auto", text_auto=".0f")
         fig_heat.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
                                font_color="#c9d1d9",xaxis_tickangle=-40,
-                               margin=dict(t=10,b=0),
-                               coloraxis_colorbar=dict(title="% R"))
+                               margin=dict(t=10,b=0))
         st.plotly_chart(fig_heat, use_container_width=True)
 
-        st.markdown('<p class="section-title">India — Isolate Volume Tested Per Year</p>', unsafe_allow_html=True)
-        vol     = gf.groupby(["Year","PathogenName"])["TotalSpecimenIsolates"].sum().reset_index()
-        fig_vol = px.bar(vol, x="Year", y="TotalSpecimenIsolates", color="PathogenName",
-                         barmode="stack",
-                         labels={"TotalSpecimenIsolates":"Total isolates","PathogenName":""},
-                         color_discrete_sequence=px.colors.qualitative.Bold)
-        fig_vol.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
-                              font_color="#c9d1d9",legend_orientation="h",
-                              margin=dict(t=10,b=0))
-        st.plotly_chart(fig_vol, use_container_width=True)
-
         st.markdown("---")
-
-        # ── Section B: Global comparison ──────────────────────────────────────
         st.markdown("### 🌍 Global Comparison — India vs World")
         gb1, gb2 = st.columns(2)
         with gb1:
-            gc_org = st.selectbox("Pathogen (global)",   sorted(global_["PathogenName"].unique().tolist()), key="gc_org")
+            gc_org = st.selectbox("Pathogen (global)", sorted(global_["PathogenName"].unique()), key="gc_org")
         with gb2:
-            gc_ab  = st.selectbox("Antibiotic (global)", sorted(global_["AbTargets"].unique().tolist()),    key="gc_ab")
+            gc_ab  = st.selectbox("Antibiotic (global)", sorted(global_["AbTargets"].unique()),  key="gc_ab")
 
-        sub_global = global_[
-            (global_["PathogenName"] == gc_org) &
-            (global_["AbTargets"]    == gc_ab)
-        ].copy()
+        sub_global = global_[(global_["PathogenName"]==gc_org)&(global_["AbTargets"]==gc_ab)].copy()
 
-        if sub_global.empty:
-            st.info("No data for this pathogen/antibiotic combination globally.")
-        else:
-            st.markdown('<p class="section-title">All Countries — Average Resistance % (2017–2020)</p>', unsafe_allow_html=True)
+        if not sub_global.empty:
             country_avg = (sub_global.groupby("CountryTerritoryArea")["PercentResistant"]
                            .mean().sort_values(ascending=True).reset_index())
             country_avg["color"] = country_avg["CountryTerritoryArea"].apply(
-                lambda x: "#f72585" if x == "India" else "#4361ee"
-            )
+                lambda x: "#f72585" if x=="India" else "#4361ee")
             fig_rank = px.bar(country_avg, x="PercentResistant", y="CountryTerritoryArea",
-                              orientation="h",
-                              color="color", color_discrete_map="identity",
+                              orientation="h", color="color", color_discrete_map="identity",
                               labels={"PercentResistant":"Avg % Resistant","CountryTerritoryArea":"Country"})
             fig_rank.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
                                    font_color="#c9d1d9",showlegend=False,
-                                   height=max(400, len(country_avg)*18),
-                                   margin=dict(t=10,b=0))
+                                   height=max(400,len(country_avg)*18),margin=dict(t=10,b=0))
             st.plotly_chart(fig_rank, use_container_width=True)
             st.caption("🔴 India highlighted in pink")
 
-            st.markdown('<p class="section-title">India vs Global Average — Resistance % Over Time</p>', unsafe_allow_html=True)
             india_trend  = sub_global[sub_global["CountryTerritoryArea"]=="India"].groupby("Year")["PercentResistant"].mean().reset_index()
             global_trend = sub_global.groupby("Year")["PercentResistant"].mean().reset_index()
             india_trend["Series"]  = "India"
@@ -383,82 +607,29 @@ with tab2:
                                   legend_orientation="h",margin=dict(t=10,b=0))
             st.plotly_chart(fig_cmp, use_container_width=True)
 
-            st.markdown('<p class="section-title">Resistance % by WHO Region</p>', unsafe_allow_html=True)
-            region_avg = sub_global.groupby("WHORegionName")["PercentResistant"].mean().sort_values().reset_index()
-            fig_reg = px.bar(region_avg, x="PercentResistant", y="WHORegionName", orientation="h",
-                             color="PercentResistant",
-                             color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
-                             labels={"PercentResistant":"Avg % Resistant","WHORegionName":"WHO Region"})
-            fig_reg.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
-                                  font_color="#c9d1d9",coloraxis_showscale=False,
-                                  margin=dict(t=10,b=0))
-            st.plotly_chart(fig_reg, use_container_width=True)
-
+        # Summary table
         st.markdown("---")
-
-        # ── Section C: 2023 resistance data ───────────────────────────────────
-        if res_2023 is not None:
-            st.markdown("### WHO GLASS India — 2023 Resistance by Antibiotic")
-            sel_p = st.selectbox("Pathogen (2023)", res_2023["Pathogen"].unique().tolist())
-            sub23 = res_2023[res_2023["Pathogen"] == sel_p].copy()
-            sub23 = sub23[sub23["TotalBCIsWithAST"] != "-"].copy()
-            sub23["TotalBCIsWithAST"] = pd.to_numeric(sub23["TotalBCIsWithAST"], errors="coerce")
-            sub23 = sub23.dropna(subset=["TotalBCIsWithAST"])
-            fig_23 = px.bar(sub23.sort_values("TotalBCIsWithAST"),
-                            x="TotalBCIsWithAST", y="AntibioticName", orientation="h",
-                            color="TotalBCIsWithAST",
-                            color_continuous_scale=["#4cc9f0","#f72585"],
-                            labels={"TotalBCIsWithAST":"Isolates with AST","AntibioticName":"Antibiotic"},
-                            title=f"{sel_p} · {sub23['InfectionType'].iloc[0] if len(sub23)>0 else ''} · India 2023")
-            fig_23.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
-                                 font_color="#c9d1d9",coloraxis_showscale=False,
-                                 margin=dict(t=30,b=0))
-            st.plotly_chart(fig_23, use_container_width=True)
-            st.markdown("---")
-
-        # ── Section D: SDG trends ─────────────────────────────────────────────
-        if sdg is not None:
-            st.markdown("### SDG AMR Indicators — India 2016–2023")
-            sc1, sc2 = st.columns(2)
-            for col, (pathogen, ab) in zip([sc1,sc2],[
-                ("Escherichia coli",    "3GC (ESBL proxy)"),
-                ("Staphylococcus aureus","Methicillin (MRSA)"),
-            ]):
-                sub = sdg[sdg["Pathogen"]==pathogen].dropna(subset=["Year","TotalBCIsWithAST"])
-                with col:
-                    st.markdown(f'<p class="section-title">{pathogen} — {ab}</p>', unsafe_allow_html=True)
-                    fig_sdg = px.bar(sub, x="Year", y="TotalBCIsWithAST",
-                                     color_discrete_sequence=["#f72585"],
-                                     labels={"TotalBCIsWithAST":"Isolates tested"})
-                    fig_sdg.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
-                                          font_color="#c9d1d9",margin=dict(t=10,b=0))
-                    st.plotly_chart(fig_sdg, use_container_width=True)
-            st.markdown("---")
-
-        # ── Section E: Summary table ──────────────────────────────────────────
         st.markdown('<p class="section-title">India Resistance Summary Table</p>', unsafe_allow_html=True)
-        summary = (
-            india.groupby(["PathogenName","AbTargets"])
-            .agg(avg_resistance=("PercentResistant","mean"),
-                 isolates=("TotalSpecimenIsolates","sum"),
-                 years=("Year","nunique"))
-            .round(1).reset_index()
-            .sort_values("avg_resistance", ascending=False)
-        )
+        summary = (india.groupby(["PathogenName","AbTargets"])
+                   .agg(avg_resistance=("PercentResistant","mean"),
+                        isolates=("TotalSpecimenIsolates","sum"),
+                        years=("Year","nunique"))
+                   .round(1).reset_index()
+                   .sort_values("avg_resistance", ascending=False))
         summary.columns = ["Pathogen","Antibiotic","Avg Resistance %","Total Isolates","Years Reported"]
         st.dataframe(summary, use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 3 — GENOMIC RESISTANCE
+# TAB 5 — GENOMIC
 # ══════════════════════════════════════════════════════════════════════════════
-with tab3:
+with tab5:
     if genomic_df is None:
         st.error("Dataset/antimicrobial_resistance_csv.csv not found.")
     else:
-        st.markdown("### Genomic Resistance Profile — *E. coli* isolates (n=50)")
-        st.caption("Source: Kaggle AMR genomic dataset · All isolates are Escherichia coli · Gene presence = binary (0/1)")
+        st.markdown("### 🧬 Genomic Resistance Profile — *E. coli* isolates (n=50)")
+        st.caption("Source: Kaggle AMR genomic dataset · Gene presence = binary (0/1)")
 
-        gm1, gm2, gm3 = st.columns(3)
+        gm1,gm2,gm3 = st.columns(3)
         gm1.metric("Isolates",             len(genomic_df))
         gm2.metric("Resistance genes",     len(gene_cols))
         gm3.metric("Drug classes covered", len(class_cols))
@@ -477,7 +648,7 @@ with tab3:
             st.plotly_chart(fig_cls, use_container_width=True)
 
         with gc2:
-            st.markdown('<p class="section-title">Top 15 Resistance Genes by Frequency</p>', unsafe_allow_html=True)
+            st.markdown('<p class="section-title">Top 15 Resistance Genes</p>', unsafe_allow_html=True)
             gene_freq = (genomic_df[gene_cols].sum()
                          .sort_values(ascending=False).head(15)
                          .sort_values(ascending=True).reset_index())
@@ -489,7 +660,7 @@ with tab3:
                                    margin=dict(t=10,b=0))
             st.plotly_chart(fig_gene, use_container_width=True)
 
-        st.markdown('<p class="section-title">Resistance Burden Distribution (genes per isolate)</p>', unsafe_allow_html=True)
+        st.markdown('<p class="section-title">Resistance Burden per Isolate</p>', unsafe_allow_html=True)
         fig_dist = px.histogram(genomic_df, x="total_amr_genes", nbins=15,
                                 labels={"total_amr_genes":"AMR genes per isolate"},
                                 color_discrete_sequence=["#f72585"])
@@ -505,30 +676,27 @@ with tab3:
             key_df = genomic_df[key_genes].sum().reset_index()
             key_df.columns = ["Gene","Present in N isolates"]
             key_df["Gene"] = key_df["Gene"].str.replace("gene_","")
-            key_df["% of isolates"] = (key_df["Present in N isolates"] / len(genomic_df) * 100).round(1)
+            key_df["% of isolates"] = (key_df["Present in N isolates"]/len(genomic_df)*100).round(1)
             st.dataframe(key_df, use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 4 — RESISTANCE PREDICTOR
+# TAB 6 — RESISTANCE PREDICTOR
 # ══════════════════════════════════════════════════════════════════════════════
-with tab4:
+with tab6:
     if model is None or meta is None:
-        st.error("Run `train_model.py` first to generate processed/clinical_model.pkl")
+        st.error("Run `train_model.py` first.")
     else:
-        st.markdown("### Clinical Resistance Predictor")
-        st.markdown(
-            "Predicts antibiotic resistance probability for a patient case. "
-            "Model: Random Forest trained on ICMR multicentre India data (n=130 isolates)."
-        )
+        st.markdown("### 🔮 Clinical Resistance Predictor")
+        st.markdown("Predicts resistance probability + recommends safest antibiotics for this patient profile.")
+        st.caption("Model: Random Forest · ICMR multicentre India data · n=130 isolates")
 
         m = meta["metrics"]["clinical"]
         mc1,mc2,mc3 = st.columns(3)
         mc1.metric("CV Accuracy", f"{m['accuracy']:.3f}")
         mc2.metric("CV F1 Score", f"{m['f1']:.3f}")
         mc3.metric("CV ROC-AUC",  f"{m['roc_auc']:.3f}")
-        st.caption("5-fold stratified cross-validation · Intermediate isolates excluded from training")
+        st.caption("5-fold stratified cross-validation · Intermediate isolates excluded")
         st.markdown("---")
-        st.markdown("#### Patient details")
 
         org_inv  = {v:k for k,v in meta["organism"].items()}
         atb_inv  = {v:k for k,v in meta["antibiotic"].items()}
@@ -539,19 +707,21 @@ with tab4:
 
         col1,col2,col3 = st.columns(3)
         with col1:
-            age_in    = st.slider("Age", 1, 100, 45)
+            age_in    = st.slider("Patient Age", 1, 100, 45)
             gender_in = st.selectbox("Gender", ["Male","Female"])
             ward_in   = st.selectbox("Ward", list(ward_inv.keys()))
         with col2:
-            org_in  = st.selectbox("Organism", list(org_inv.keys()))
-            atb_in  = st.selectbox("Antibiotic", list(atb_inv.keys()))
+            org_in  = st.selectbox("Suspected Organism", list(org_inv.keys()))
+            atb_in  = st.selectbox("Proposed Antibiotic", list(atb_inv.keys()))
             samp_in = st.selectbox("Sample type", list(samp_inv.keys()))
         with col3:
             dept_in = st.selectbox("Department", list(dept_inv.keys()))
             inf_in  = st.selectbox("Infection acquisition", list(inf_inv.keys()))
 
-        if st.button("Predict", type="primary"):
+        if st.button("🔮 Predict Resistance", type="primary"):
             features = meta["clinical_features"]
+
+            # Predict for the selected antibiotic
             row = {
                 "age":               float(age_in),
                 "gender":            1.0 if gender_in=="Female" else 2.0,
@@ -567,9 +737,12 @@ with tab4:
             pc1, pc2 = st.columns([1,2])
             with pc1:
                 st.metric("Resistance probability", f"{prob:.1f}%")
-                if prob >= 60:   st.error("⚠ High risk — consider alternative antibiotic.")
-                elif prob >= 40: st.warning("Moderate risk — confirm with susceptibility testing.")
-                else:            st.success("Low risk — antibiotic likely effective.")
+                if prob >= 60:
+                    st.error("⚠️ High risk — consider alternative antibiotic.")
+                elif prob >= 40:
+                    st.warning("⚠ Moderate risk — confirm with susceptibility test.")
+                else:
+                    st.success("✅ Low risk — antibiotic likely effective.")
             with pc2:
                 fig_g = go.Figure(go.Indicator(
                     mode="gauge+number", value=prob,
@@ -577,15 +750,41 @@ with tab4:
                     gauge={
                         "axis":{"range":[0,100],"tickcolor":"#8b95a8"},
                         "bar":{"color":"#f72585"},
-                        "steps":[{"range":[0,40],  "color":"#0d1117"},
-                                 {"range":[40,60],  "color":"#1a1f2e"},
-                                 {"range":[60,100], "color":"#1f0d17"}],
+                        "steps":[{"range":[0,40],"color":"#0d1117"},
+                                 {"range":[40,60],"color":"#1a1f2e"},
+                                 {"range":[60,100],"color":"#1f0d17"}],
                         "threshold":{"line":{"color":"white","width":2},"value":60},
                     },
                 ))
                 fig_g.update_layout(paper_bgcolor="#0f1117",font_color="#c9d1d9",
                                     height=220,margin=dict(t=20,b=0,l=20,r=20))
                 st.plotly_chart(fig_g, use_container_width=True)
+
+            # ── Antibiotic Recommendation Engine ─────────────────────────────
+            st.markdown("---")
+            st.markdown("#### 💊 Antibiotic Recommendation — Ranked by Resistance Risk")
+            st.caption("All available antibiotics scored for this patient profile. Lower % = safer choice.")
+
+            recommendations = []
+            for ab_name, ab_id in atb_inv.items():
+                r = row.copy()
+                r["antibiotic_id"] = float(ab_id)
+                p = model.predict_proba(pd.DataFrame([r])[features])[0][1] * 100
+                recommendations.append({"Antibiotic": ab_name, "Resistance Risk %": round(p,1)})
+
+            rec_df = pd.DataFrame(recommendations).sort_values("Resistance Risk %")
+            rec_df["Recommendation"] = rec_df["Resistance Risk %"].apply(
+                lambda x: "✅ Recommended" if x < 40 else ("⚠️ Use caution" if x < 60 else "❌ Avoid"))
+
+            fig_rec = px.bar(rec_df, x="Resistance Risk %", y="Antibiotic",
+                             orientation="h", color="Resistance Risk %",
+                             color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
+                             labels={"Resistance Risk %":"Resistance Risk %"})
+            fig_rec.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
+                                  font_color="#c9d1d9",coloraxis_showscale=False,
+                                  margin=dict(t=10,b=0))
+            st.plotly_chart(fig_rec, use_container_width=True)
+            st.dataframe(rec_df, use_container_width=True)
 
         st.markdown("---")
         st.markdown('<p class="section-title">Feature Importances</p>', unsafe_allow_html=True)

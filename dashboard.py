@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components  # Added for HTML map injection
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -195,7 +196,7 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 ])
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 1 — ICMR CLINICAL
+# TAB 1 — ICMR CLINICAL (Updated Parameters)
 # ══════════════════════════════════════════════════════════════════════════════
 with tab1:
     if icmr is None:
@@ -214,7 +215,7 @@ with tab1:
             )
             fig.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
                               legend_orientation="h",xaxis_tickangle=-30,margin=dict(t=10,b=0))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, on_select="rerun", selection_mode="rows")
 
         with r1c2:
             st.markdown('<p class="section-title">Resistance by Ward Type</p>', unsafe_allow_html=True)
@@ -226,7 +227,7 @@ with tab1:
             )
             fig2.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
                                legend_orientation="h",margin=dict(t=10,b=0))
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, on_select="rerun", selection_mode="rows")
 
         # Antibiogram heatmap
         st.markdown('<p class="section-title">Antibiogram Heatmap — % Resistant (organism × antibiotic)</p>', unsafe_allow_html=True)
@@ -244,7 +245,7 @@ with tab1:
             fig3.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
                                xaxis_tickangle=-40,margin=dict(t=10,b=0),
                                coloraxis_colorbar=dict(title="% R"))
-            st.plotly_chart(fig3, use_container_width=True)
+            st.plotly_chart(fig3, on_select="rerun", selection_mode="rows")
 
         r2c1, r2c2, r2c3 = st.columns(3)
         with r2c1:
@@ -255,7 +256,7 @@ with tab1:
                           color="n", color_continuous_scale=["#4361ee","#f72585"])
             fig4.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
                                showlegend=False,coloraxis_showscale=False,margin=dict(t=10,b=0))
-            st.plotly_chart(fig4, use_container_width=True)
+            st.plotly_chart(fig4, on_select="rerun", selection_mode="rows")
 
         with r2c2:
             st.markdown('<p class="section-title">Infection Acquisition</p>', unsafe_allow_html=True)
@@ -265,7 +266,7 @@ with tab1:
                           color_discrete_sequence=["#f72585","#4cc9f0","#f8961e"], hole=0.5)
             fig5.update_layout(paper_bgcolor="#0f1117",font_color="#c9d1d9",
                                margin=dict(t=10,b=0),legend=dict(orientation="h",y=-0.15))
-            st.plotly_chart(fig5, use_container_width=True)
+            st.plotly_chart(fig5, on_select="rerun", selection_mode="rows")
 
         with r2c3:
             st.markdown('<p class="section-title">Sample Type Distribution</p>', unsafe_allow_html=True)
@@ -275,7 +276,7 @@ with tab1:
                           color_discrete_sequence=["#4361ee"])
             fig6.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
                                margin=dict(t=10,b=0))
-            st.plotly_chart(fig6, use_container_width=True)
+            st.plotly_chart(fig6, on_select="rerun", selection_mode="rows")
 
         # Antibiotic effectiveness ranking
         st.markdown('<p class="section-title">Antibiotic Effectiveness Ranking (lowest resistance = most effective)</p>', unsafe_allow_html=True)
@@ -291,7 +292,7 @@ with tab1:
                         labels={"Resistance Rate":"Resistance %"})
         fig_ab.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
                              coloraxis_showscale=False,margin=dict(t=10,b=0))
-        st.plotly_chart(fig_ab, use_container_width=True)
+        st.plotly_chart(fig_ab, on_select="rerun", selection_mode="rows")
 
         with st.expander("📋 Raw data table"):
             show = ["organism_name","antibiotic_name","resistance","state_name",
@@ -299,71 +300,37 @@ with tab1:
             st.dataframe(filtered[show].reset_index(drop=True), use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 2 — INDIA MAP
+# TAB 2 — INDIA MAP (Updated with Folium HTML Asset Injection)
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
     if icmr is None:
         st.error("Run `merge_icmr.py` first.")
     else:
         st.markdown("### 🗺️ India State Resistance Map")
-        st.caption("Bubble size and color = resistance rate. Hover for details.")
+        st.caption("Interactive spatial distribution engine. Click on regional markers to review resistance thresholds.")
 
-        map_org = st.selectbox("Filter by organism (map)",
-            ["All organisms"] + sorted(icmr["organism_name"].dropna().unique().tolist()),
-            key="map_org")
+        # Check if your generated map exists
+        map_path = "amr_india_map.html"
+        
+        if os.path.exists(map_path):
+            with open(map_path, "r", encoding="utf-8") as f:
+                html_map_content = f.read()
+            
+            # Embed the map directly into the UI container
+            components.html(html_map_content, height=550, scrolling=False)
+        else:
+            st.warning("⚠️ Native amr_india_map.html asset not found. Run choropleth_map.py to generate the engine view.")
 
+        # State comparison table
+        st.markdown('<p class="section-title">State-wise Resistance Summary</p>', unsafe_allow_html=True)
         map_df = icmr.dropna(subset=["state_name","is_resistant"]).copy()
-        if map_org != "All organisms":
-            map_df = map_df[map_df["organism_name"] == map_org]
-
         state_stats = (map_df.groupby("state_name")
                        .agg(resistance_rate=("is_resistant","mean"),
                             total_isolates=("is_resistant","count"),
                             resistant_count=("is_resistant","sum"))
                        .reset_index())
         state_stats["resistance_pct"]  = (state_stats["resistance_rate"]*100).round(1)
-        state_stats["lat"] = state_stats["state_name"].map(lambda s: STATE_COORDS.get(s,(22.5,78.9))[0])
-        state_stats["lng"] = state_stats["state_name"].map(lambda s: STATE_COORDS.get(s,(22.5,78.9))[1])
-        state_stats["hover"] = state_stats.apply(
-            lambda r: f"{r['state_name']}<br>Resistance: {r['resistance_pct']}%<br>Isolates: {r['total_isolates']}", axis=1)
-
-        fig_map = go.Figure()
-        fig_map.add_trace(go.Scattergeo(
-            lat=state_stats["lat"],
-            lon=state_stats["lng"],
-            text=state_stats["hover"],
-            hoverinfo="text",
-            mode="markers+text",
-            textposition="top center",
-            textfont=dict(color="#c9d1d9", size=11),
-            marker=dict(
-                size=state_stats["resistance_pct"] / 2 + 15,
-                color=state_stats["resistance_pct"],
-                colorscale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
-                cmin=0, cmax=100,
-                colorbar=dict(title="Resistance %", ticksuffix="%"),
-                line=dict(color="white", width=1),
-                opacity=0.85,
-            ),
-        ))
-        fig_map.update_layout(
-            geo=dict(
-                scope="asia",
-                center=dict(lat=22.5, lon=78.9),
-                projection_scale=4,
-                showland=True, landcolor="#1a1f2e",
-                showocean=True, oceancolor="#0d1117",
-                showcountries=True, countrycolor="#444",
-                showcoastlines=True, coastlinecolor="#444",
-                bgcolor="#0f1117",
-            ),
-            paper_bgcolor="#0f1117", font_color="#c9d1d9",
-            margin=dict(t=10,b=0,l=0,r=0), height=520,
-        )
-        st.plotly_chart(fig_map, use_container_width=True)
-
-        # State comparison table
-        st.markdown('<p class="section-title">State-wise Resistance Summary</p>', unsafe_allow_html=True)
+        
         display = state_stats[["state_name","resistance_pct","total_isolates","resistant_count"]].copy()
         display.columns = ["State","Resistance %","Total Isolates","Resistant Isolates"]
         display = display.sort_values("Resistance %", ascending=False)
@@ -381,7 +348,7 @@ with tab2:
                         labels={"state_name":"State","resistance_pct":"Resistance %","ward_name":""})
         fig_ws.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
                              font_color="#c9d1d9",legend_orientation="h",margin=dict(t=10,b=0))
-        st.plotly_chart(fig_ws, use_container_width=True)
+        st.plotly_chart(fig_ws, on_select="rerun", selection_mode="rows")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — FORECAST

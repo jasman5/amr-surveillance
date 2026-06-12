@@ -1,13 +1,9 @@
 # 🧬 AMR Surveillance System — India
 
-An end-to-end **Antimicrobial Resistance (AMR) surveillance platform** for India,
-built on ICMR multicentre clinical data, WHO GLASS global trends, genomic resistance
-profiles, and PubMed literature mining.
+A comprehensive **Antimicrobial Resistance (AMR) surveillance platform** for India based on PubMed literature mining, genetic resistance profiles, WHO GLASS global trends, and ICMR multicenter clinical data.
 
 ## The Problem
-Resistance patterns in India vary by state, hospital, and organism. A doctor in Tamil Nadu
-has no unified way to know that *Klebsiella pneumoniae* in their ICU is 78% resistant to
-Ciprofloxacin. Clinical decisions get made blindly. This system builds that picture.
+In India, resistance patterns differ by organism, state, and hospital. 78% of the *Klebsiella pneumoniae* at a Tamil Nadu doctor's intensive care unit are resistant to ciprofloxacin. Clinical judgments are made arbitrarily. This system creates that image.
 
 ## What It Does
 

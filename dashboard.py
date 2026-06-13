@@ -108,9 +108,28 @@ def load_genomic():
     df["total_amr_genes"]          = df[gene_cols].sum(axis=1)
     return df, class_cols, gene_cols
 
+@st.cache_data
+def load_atlas():
+    base = "Dataset/ATLAS"
+    files = {
+        "yearly": "atlas_yearly_trend.csv",
+        "icu":    "atlas_icu_comparison.csv",
+        "genes":  "atlas_gene_prevalence.csv",
+        "heatmap":"atlas_heatmap.csv",
+    }
+    out = {}
+    for key, fname in files.items():
+        p = os.path.join(base, fname)
+        if not os.path.exists(p):
+            return None
+        out[key] = pd.read_csv(p)
+    return out
+
 @st.cache_resource
 def load_model():
-    mp, mm = "Dataset/processed/clinical_model.pkl", "Dataset/processed/model_meta.pkl"
+    # Enforce unified Dataset subfolder paths
+    mp = "Dataset/processed/clinical_model.pkl"
+    mm = "Dataset/processed/model_meta.pkl"
     if not os.path.exists(mp) or not os.path.exists(mm): return None, None
     with open(mp,"rb") as f: model = pickle.load(f)
     with open(mm,"rb") as f: meta  = pickle.load(f)
@@ -121,6 +140,7 @@ glass       = load_glass()
 res_2023    = load_resistance_2023()
 sdg         = load_sdg()
 genomic_out = load_genomic()
+atlas       = load_atlas()
 model, meta = load_model()
 
 genomic_df = genomic_out[0] if genomic_out else None
@@ -182,13 +202,14 @@ if icmr is not None and not filtered.empty:
 # ─────────────────────────────────────────────────────────────────────────────
 # TABS
 # ─────────────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "🏥 ICMR Clinical",
     "🗺️ India Map",
     "📈 Forecast",
     "🌍 WHO GLASS",
     "🧬 Genomic",
     "🔮 Predictor",
+    "🌐 ATLAS Global",
 ])
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -303,9 +324,7 @@ with tab2:
         st.markdown("### 🗺️ India State Resistance Map")
         st.caption("Interactive spatial distribution engine. Click on regional markers to review resistance thresholds.")
 
-        # CRITICAL REPOSITORY PATH ALIGNMENT FIX
         map_path = "Dataset/processed/amr_india_map.html"
-        
         if os.path.exists(map_path):
             with open(map_path, "r", encoding="utf-8") as f:
                 html_map_content = f.read()
@@ -731,7 +750,6 @@ with tab6:
                                     height=220,margin=dict(t=20,b=0,l=20,r=20))
                 st.plotly_chart(fig_g, use_container_width=True)
 
-            # ── Antibiotic Recommendation Engine ─────────────────────────────
             st.markdown("---")
             st.markdown("#### 💊 Antibiotic Recommendation — Ranked by Resistance Risk")
             st.caption("All available antibiotics scored for this patient profile. Lower % = safer choice.")
@@ -766,3 +784,90 @@ with tab6:
         fig_imp.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
                               coloraxis_showscale=False,margin=dict(t=10,b=0),height=280)
         st.plotly_chart(fig_imp, use_container_width=True)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 7 — ATLAS GLOBAL
+# ══════════════════════════════════════════════════════════════════════════════
+with tab7:
+    if atlas is None:
+        st.error("ATLAS summary files not found. Place atlas_yearly_trend.csv in Dataset/ATLAS/ and run `python prep_atlas.py` first.")
+    else:
+        yearly  = atlas["yearly"]
+        icu_df  = atlas["icu"]
+        gene_df = atlas["genes"]
+        heat_df = atlas["heatmap"]
+
+        st.markdown("### 🌐 ATLAS (Pfizer/Vivli) — India, 2004–2024")
+        st.caption("17,327 India isolates · Real multi-year S/I/R surveillance data")
+
+        am1, am2, am3, am4 = st.columns(4)
+        am1.metric("India isolates",   "17,327")
+        am2.metric("Years of data",    "2004–2024")
+        am3.metric("Species tracked",  f"{yearly['Species'].nunique()}")
+        am4.metric("Antibiotics",      f"{yearly['Antibiotic'].nunique()}")
+        st.markdown("---")
+
+        # FIX: Explicit core validation list addition to resolve the NameError scoping bug
+        top_species = ["Acinetobacter baumannii", "Escherichia coli", "Klebsiella pneumoniae", "Pseudomonas aeruginosa", "Staphylococcus aureus"]
+
+        st.markdown("#### 📈 Real Resistance Trends (2004–2024)")
+        at1, at2 = st.columns(2)
+        with at1: atlas_species = st.selectbox("Species", sorted(yearly["Species"].unique()), key="atlas_sp")
+        with at2: atlas_abx = st.selectbox("Antibiotic", sorted(yearly["Antibiotic"].unique()), key="atlas_ab")
+
+        trend_sub = yearly[(yearly["Species"]==atlas_species) & (yearly["Antibiotic"]==atlas_abx)].sort_values("Year")
+
+        if trend_sub.empty:
+            st.info("No data for this combination.")
+        else:
+            fig_trend = go.Figure()
+            fig_trend.add_trace(go.Scatter(x=trend_sub["Year"], y=trend_sub["PercentResistant"], mode="lines+markers", name="% Resistant", line=dict(color="#f72585", width=2)))
+            fig_trend.add_trace(go.Bar(x=trend_sub["Year"], y=trend_sub["N"], name="Isolates tested", yaxis="y2", marker_color="rgba(76,201,240,0.3)"))
+            fig_trend.update_layout(
+                plot_bgcolor="#0f1117", paper_bgcolor="#0f1117", font_color="#c9d1d9",
+                xaxis_title="Year", yaxis=dict(title="% Resistant", range=[0,100]),
+                yaxis2=dict(title="Isolates tested", overlaying="y", side="right", showgrid=False),
+                legend_orientation="h", margin=dict(t=40,b=0)
+            )
+            st.plotly_chart(fig_trend, use_container_width=True)
+
+        st.markdown('<p class="section-title">All Species — Same Antibiotic, Latest Year Available</p>', unsafe_allow_html=True)
+        same_ab = yearly[yearly["Antibiotic"]==atlas_abx].copy()
+        latest_per_species = same_ab.sort_values("Year").groupby("Species").tail(1)
+        fig_sp = px.bar(latest_per_species.sort_values("PercentResistant"), x="PercentResistant", y="Species", orientation="h", color="PercentResistant", color_continuous_scale=[[0,"#4cc9f0"],[1,"#f72585"]])
+        fig_sp.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",coloraxis_showscale=False,margin=dict(t=10,b=0))
+        st.plotly_chart(fig_sp, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("#### 🏨 ICU vs Non-ICU Resistance — India (all years)")
+        fig_icu = px.bar(icu_df, x="Antibiotic", y="PercentResistant", color="Setting", barmode="group", color_discrete_map={"ICU":"#f72585","Non-ICU":"#4cc9f0"})
+        fig_icu.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",legend_orientation="h",xaxis_tickangle=-30,margin=dict(t=10,b=0))
+        st.plotly_chart(fig_icu, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("#### 🔥 Species × Antibiotic Resistance Heatmap (2020–2024)")
+        heat_pivot = heat_df.pivot(index="Species", columns="Antibiotic", values="PercentResistant")
+        fig_atlas_heat = px.imshow(heat_pivot, color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]], zmin=0, zmax=100, labels=dict(color="% R"), aspect="auto", text_auto=".0f")
+        fig_atlas_heat.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",xaxis_tickangle=-40,margin=dict(t=10,b=0))
+        st.plotly_chart(fig_atlas_heat, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("#### 🧬 Resistance Gene Detections — India")
+        fig_gene = px.bar(gene_df, x="Detections", y="Gene", orientation="h", color="Detections", color_continuous_scale=["#4361ee","#f72585"])
+        fig_gene.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",coloraxis_showscale=False,margin=dict(t=10,b=0))
+        st.plotly_chart(fig_gene, use_container_width=True)
+
+        # ── UPGRADED GLOBAL SURVEILLANCE MAP PANEL ───────────────────────────
+        st.markdown("---")
+        st.markdown("#### 🌍 International Pathogen Surveillance Canvas (Pfizer ATLAS Network)")
+        st.caption("Cross-border resistance rate visualization. Choose a high-alert biochemical challenge agent to re-project the global heatmap.")
+        
+        map_abx_options = ["All Antibiotics", "Ciprofloxacin", "Meropenem", "Colistin", "Amikacin"]
+        selected_map_abx = st.selectbox("Select Target Agent for Global Heatmap Projections", map_abx_options, key="global_map_abx_dropdown")
+        
+        from world_map import generate_global_map
+        try:
+            fig_world_map = generate_global_map(selected_map_abx)
+            st.plotly_chart(fig_world_map, use_container_width=True)
+        except Exception as e:
+            st.warning(f"Could not render global mapping layers: {e}")

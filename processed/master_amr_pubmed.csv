@@ -1,4 +1,12 @@
 patient_id,age,gender,ward_type,infection_type_id,organism_id,hospital_dept_id,sample_type_id,pathogen,antibiotic,source_dataset,state_region,collection_year
+PMID_42275280,45,1,1,1,1,1,1,Staphylococcus aureus,Penicillin,PubMed NLP Core (Scraped Stream),India (National Literature),2026
+PMID_42274922,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
+PMID_42272575,45,1,1,1,1,1,1,Klebsiella,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
+PMID_42270965,45,1,1,1,1,1,1,Staphylococcus aureus,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
+PMID_42270823,45,1,1,1,1,1,1,Klebsiella,Fluoroquinolone,PubMed NLP Core (Scraped Stream),India (National Literature),2026
+PMID_42268315,45,1,1,1,1,1,1,Staphylococcus aureus,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
+PMID_42268236,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
+PMID_42263997,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
 PMID_42262426,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
 PMID_42261894,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
 PMID_42260726,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
@@ -91,11 +99,3 @@ PMID_42165730,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Sc
 PMID_42164966,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
 PMID_42164832,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
 PMID_42163757,45,1,1,1,1,1,1,Unknown Pathogen,Penicillin,PubMed NLP Core (Scraped Stream),India (National Literature),2026
-PMID_42163738,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
-PMID_42162448,45,1,1,1,1,1,1,Escherichia coli,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
-PMID_42158742,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
-PMID_42157130,45,1,1,1,1,1,1,Unknown Pathogen,Cephalosporin,PubMed NLP Core (Scraped Stream),India (National Literature),2026
-PMID_42154426,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
-PMID_42154178,45,1,1,1,1,1,1,E. coli,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
-PMID_42154040,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026
-PMID_42153452,45,1,1,1,1,1,1,Unknown Pathogen,Broad Spectrum,PubMed NLP Core (Scraped Stream),India (National Literature),2026

@@ -1,101 +1,90 @@
 """
-train_model.py — Clinical Resistance Predictor (Engine 1)
-Trains a Random Forest on ICMR patient-level clinical features.
-Target: is_resistant (1 = Resistant, 0 = Susceptible)
-Intermediate isolates excluded from training.
-
-Run AFTER merge_icmr.py
-Output: processed/clinical_model.pkl + processed/model_meta.pkl
+train_model.py — Research-Grade Predictive Modeling Engine
+Trains a RandomForestClassifier using Stratified 5-Fold Cross-Validation.
+Includes antibiotic profiles directly into the feature array to prevent biological confounding.
 """
 
 import pandas as pd
 import numpy as np
 import pickle
 import os
-import warnings
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold, cross_validate
 
-warnings.filterwarnings("ignore")
-os.makedirs("processed", exist_ok=True)
+# UNIFIED WORKING DIRECTORY
+TARGET_DIR = "Dataset/processed"
+os.makedirs(TARGET_DIR, exist_ok=True)
 
-# ── 1. Load merged ICMR data ──────────────────────────────────────────────────
-print("Loading processed/master_amr_icmr.csv ...")
-df = pd.read_csv("processed/master_amr_icmr.csv")
+print("🔬 Initializing Research-Grade ML Pipeline...")
+baseline_path = os.path.join(TARGET_DIR, "master_amr_icmr.csv")
 
-# Keep only Susceptible (0) and Resistant (1) — drop Intermediate
-df_train = df[df["is_resistant"].notna()].copy()
-df_train["is_resistant"] = df_train["is_resistant"].astype(int)
+if not os.path.exists(baseline_path):
+    raise FileNotFoundError(f"Missing baseline registry at {baseline_path}. Please run merge_icmr.py first.")
 
-print(f"Training rows : {len(df_train)}  (Resistant: {df_train['is_resistant'].sum()} | Susceptible: {(df_train['is_resistant']==0).sum()})")
+df = pd.read_csv(baseline_path)
 
-# ── 2. Features and target ────────────────────────────────────────────────────
-FEATURES = [
-    "age",
-    "gender",
-    "ward_type",
-    "infection_type_id",
-    "organism_id",
-    "hospital_dept_id",
-    "sample_type_id",
-    "antibiotic_id",
+# Filter out intermediate values to guarantee clean binary phenotypes (S vs R)
+df_model = df[df["is_resistant"].notna()].copy()
+df_model["is_resistant"] = df_model["is_resistant"].astype(int)
+
+# Include antibiotic_id to make the model biologically sound
+FEATURE_COLS = [
+    "age",              # Continuous patient covariate
+    "gender",           # Demographic factor
+    "ward_type",        # Environmental exposure setting
+    "infection_type_id",# Epidemiological origin
+    "organism_id",      # Taxonomical feature
+    "hospital_dept_id", # Care delivery setting
+    "sample_type_id",   # Anatomical site matrix
+    "antibiotic_id"     # Targeted biochemical challenge agent
 ]
+TARGET_COL = "is_resistant"
 
-X = df_train[FEATURES].fillna(df_train[FEATURES].median())
-y = df_train["is_resistant"]
+X = df_model[FEATURE_COLS].copy().fillna(df_model[FEATURE_COLS].median())
+y = df_model[TARGET_COL]
 
-# ── 3. Cross-validation ───────────────────────────────────────────────────────
-print("\nRunning 5-fold stratified cross-validation ...")
+print(f"📊 Training Matrix Footprint: {X.shape[0]} clinical isolates across {X.shape[1]} features.")
+
 clf = RandomForestClassifier(
     n_estimators=150,
     max_depth=5,
     class_weight="balanced",
     random_state=42,
-    n_jobs=-1,
+    n_jobs=-1
 )
+
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-results = cross_validate(clf, X, y, cv=cv, scoring=["accuracy", "f1", "roc_auc"])
+cv_results = cross_validate(clf, X, y, cv=cv, scoring=["accuracy", "f1", "roc_auc"])
 
-print("\n=== CROSS-VALIDATION RESULTS ===")
-print(f"  Accuracy : {np.mean(results['test_accuracy']):.3f} ± {np.std(results['test_accuracy']):.3f}")
-print(f"  F1 Score : {np.mean(results['test_f1']):.3f} ± {np.std(results['test_f1']):.3f}")
-print(f"  ROC-AUC  : {np.mean(results['test_roc_auc']):.3f} ± {np.std(results['test_roc_auc']):.3f}")
-
-# ── 4. Train final model on all data ─────────────────────────────────────────
+# Fit final model weights
 clf.fit(X, y)
 
-print("\n=== FEATURE IMPORTANCES ===")
-for feat, imp in sorted(zip(FEATURES, clf.feature_importances_), key=lambda x: -x[1]):
-    print(f"  {feat:<22} {imp:.4f}")
+# Compile sorted feature importances for UI visualization
+importances = dict(zip(FEATURE_COLS, clf.feature_importances_))
 
-# ── 5. Save model ─────────────────────────────────────────────────────────────
-with open("processed/clinical_model.pkl", "wb") as f:
+# Save artifacts to the unified directory
+with open(os.path.join(TARGET_DIR, "clinical_model.pkl"), "wb") as f: 
     pickle.dump(clf, f)
 
-# ── 6. Save metadata for dashboard ───────────────────────────────────────────
-meta = {
-    "clinical_features": FEATURES,
+label_maps = {
+    "clinical_features": FEATURE_COLS,
+    "organism": dict(sorted(df_model[["organism_id","organism_name"]].dropna().drop_duplicates().values.tolist())),
+    "antibiotic": dict(sorted(df_model[["antibiotic_id","antibiotic_name"]].dropna().drop_duplicates().values.tolist())),
+    "ward": {1: "ICU", 2: "OPD", 3: "Ward"},
+    "infection": {1: "Community Acquired", 2: "Healthcare Associated", 3: "Not Known"},
+    "dept": dict(sorted(df_model[["hospital_dept_id","dept_name"]].dropna().drop_duplicates().values.tolist())),
+    "sample_type": dict(sorted(df_model[["sample_type_id","sample_type_name"]].dropna().drop_duplicates().values.tolist())),
+    "importances": {"clinical": importances},
     "metrics": {
         "clinical": {
-            "accuracy": float(np.mean(results["test_accuracy"])),
-            "f1":       float(np.mean(results["test_f1"])),
-            "roc_auc":  float(np.mean(results["test_roc_auc"])),
+            "accuracy": float(np.nanmean(cv_results["test_accuracy"])),
+            "f1": float(np.nanmean(cv_results["test_f1"])),
+            "roc_auc": float(np.nanmean(cv_results["test_roc_auc"]))
         }
-    },
-    "importances": {
-        "clinical": dict(zip(FEATURES, clf.feature_importances_.tolist()))
-    },
-    "organism":    dict(df_train[["organism_id",    "organism_name"   ]].dropna().drop_duplicates().values.tolist()),
-    "antibiotic":  dict(df_train[["antibiotic_id",  "antibiotic_name" ]].dropna().drop_duplicates().values.tolist()),
-    "ward":        {1: "ICU", 2: "OPD", 3: "Ward"},
-    "infection":   {1: "Community Acquired", 2: "Healthcare Associated", 3: "Not Known"},
-    "dept":        dict(df_train[["hospital_dept_id", "dept_name"      ]].dropna().drop_duplicates().values.tolist()),
-    "sample_type": dict(df_train[["sample_type_id",   "sample_type_name"]].dropna().drop_duplicates().values.tolist()),
+    }
 }
 
-with open("processed/model_meta.pkl", "wb") as f:
-    pickle.dump(meta, f)
-
-print("\nSaved: processed/clinical_model.pkl")
-print("Saved: processed/model_meta.pkl")
-print("\nDone. Run dashboard.py next.")
+with open(os.path.join(TARGET_DIR, "model_meta.pkl"), "wb") as f: 
+    pickle.dump(label_maps, f)
+    
+print(f"💾 Model optimization complete. Artifacts written safely to {TARGET_DIR}")

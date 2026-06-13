@@ -1,0 +1,49 @@
+Species,Antibiotic,PercentResistant,N
+Klebsiella pneumoniae,Ciprofloxacin,70.7,2382
+Klebsiella pneumoniae,Meropenem,57.5,2382
+Klebsiella pneumoniae,Imipenem,57.3,2382
+Klebsiella pneumoniae,Amikacin,55.4,2382
+Klebsiella pneumoniae,Ceftazidime,71.8,2382
+Klebsiella pneumoniae,Piperacillin tazobactam,64.1,2382
+Klebsiella pneumoniae,Colistin,6.2,2382
+Klebsiella pneumoniae,Levofloxacin,67.0,2382
+Klebsiella pneumoniae,Cefepime,67.0,2382
+Klebsiella pneumoniae,Gentamicin,57.9,2382
+Klebsiella pneumoniae,Trimethoprim sulfa,63.8,2382
+Klebsiella pneumoniae,Tigecycline,0.3,2381
+Escherichia coli,Ciprofloxacin,75.0,2128
+Escherichia coli,Meropenem,20.3,2128
+Escherichia coli,Imipenem,20.1,2128
+Escherichia coli,Amikacin,13.1,2128
+Escherichia coli,Ceftazidime,59.7,2128
+Escherichia coli,Piperacillin tazobactam,34.0,2128
+Escherichia coli,Colistin,0.3,2128
+Escherichia coli,Levofloxacin,73.7,2128
+Escherichia coli,Cefepime,50.6,2128
+Escherichia coli,Gentamicin,26.6,2128
+Escherichia coli,Trimethoprim sulfa,57.5,2128
+Escherichia coli,Tigecycline,0.1,2128
+Pseudomonas aeruginosa,Ciprofloxacin,28.1,1957
+Pseudomonas aeruginosa,Meropenem,27.4,1957
+Pseudomonas aeruginosa,Imipenem,30.4,1957
+Pseudomonas aeruginosa,Amikacin,23.5,1957
+Pseudomonas aeruginosa,Ceftazidime,27.4,1957
+Pseudomonas aeruginosa,Piperacillin tazobactam,27.6,1957
+Pseudomonas aeruginosa,Colistin,0.9,1957
+Pseudomonas aeruginosa,Levofloxacin,30.7,1957
+Pseudomonas aeruginosa,Cefepime,26.0,1957
+Staphylococcus aureus,Levofloxacin,81.3,1654
+Staphylococcus aureus,Gentamicin,24.2,1654
+Staphylococcus aureus,Trimethoprim sulfa,1.9,1654
+Staphylococcus aureus,Tigecycline,0.0,1654
+Acinetobacter baumannii,Ciprofloxacin,91.1,1002
+Acinetobacter baumannii,Meropenem,91.0,1002
+Acinetobacter baumannii,Imipenem,90.8,1002
+Acinetobacter baumannii,Amikacin,88.5,1002
+Acinetobacter baumannii,Ceftazidime,90.4,1002
+Acinetobacter baumannii,Piperacillin tazobactam,89.2,1002
+Acinetobacter baumannii,Colistin,1.0,1002
+Acinetobacter baumannii,Levofloxacin,85.3,1002
+Acinetobacter baumannii,Cefepime,90.8,1002
+Acinetobacter baumannii,Gentamicin,88.0,1002
+Acinetobacter baumannii,Trimethoprim sulfa,77.0,1002

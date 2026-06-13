@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_4fcdd6f805e1853978cb4a145c92bb46 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_4fcdd6f805e1853978cb4a145c92bb46" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_4fcdd6f805e1853978cb4a145c92bb46 = L.map(
+                "map_4fcdd6f805e1853978cb4a145c92bb46",
+                {
+                    center: [22.5937, 78.9629],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 5,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_75ec83f789663ccf6ce89ff933d2e5a1 = L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 20,
+  "maxNativeZoom": 20,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
+  "subdomains": "abcd",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_75ec83f789663ccf6ce89ff933d2e5a1.addTo(map_4fcdd6f805e1853978cb4a145c92bb46);
+        
+    
+            var circle_marker_13f474de889c028786827faa206a4480 = L.circleMarker(
+                [15.9129, 79.74],
+                {"bubblingMouseEvents": true, "color": "#4cc9f0", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4cc9f0", "fillOpacity": 0.6, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 1.5}
+            ).addTo(map_4fcdd6f805e1853978cb4a145c92bb46);
+        
+    
+        var popup_45b6af17bb1702204ec6f4a8ef418acd = L.popup({
+  "maxWidth": 200,
+});
+
+        
+            
+                var html_56c803b1c592952b6c2ab691d1a1b69a = $(`<div id="html_56c803b1c592952b6c2ab691d1a1b69a" style="width: 100.0%; height: 100.0%;">         <div style='font-family: sans-serif; font-size: 12px; color: #333;'>             <strong>State:</strong> Andhra Pradesh<br>             <strong>Resistance Rate:</strong> 0.0%<br>             <strong>Total Isolates:</strong> 7         </div>         </div>`)[0];
+                popup_45b6af17bb1702204ec6f4a8ef418acd.setContent(html_56c803b1c592952b6c2ab691d1a1b69a);
+            
+        
+
+        circle_marker_13f474de889c028786827faa206a4480.bindPopup(popup_45b6af17bb1702204ec6f4a8ef418acd)
+        ;
+
+        
+    
+    
+            var circle_marker_f2cf104a8df9d8aad3dfad79c372dd6d = L.circleMarker(
+                [30.7333, 76.7794],
+                {"bubblingMouseEvents": true, "color": "#f72585", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f72585", "fillOpacity": 0.6, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 13, "stroke": true, "weight": 1.5}
+            ).addTo(map_4fcdd6f805e1853978cb4a145c92bb46);
+        
+    
+        var popup_be23987c33a5990d09e8a9fdb9a578f3 = L.popup({
+  "maxWidth": 200,
+});
+
+        
+            
+                var html_a7faa765fd726f87100201cce56dd300 = $(`<div id="html_a7faa765fd726f87100201cce56dd300" style="width: 100.0%; height: 100.0%;">         <div style='font-family: sans-serif; font-size: 12px; color: #333;'>             <strong>State:</strong> Chandigarh<br>             <strong>Resistance Rate:</strong> 100.0%<br>             <strong>Total Isolates:</strong> 26         </div>         </div>`)[0];
+                popup_be23987c33a5990d09e8a9fdb9a578f3.setContent(html_a7faa765fd726f87100201cce56dd300);
+            
+        
+
+        circle_marker_f2cf104a8df9d8aad3dfad79c372dd6d.bindPopup(popup_be23987c33a5990d09e8a9fdb9a578f3)
+        ;
+
+        
+    
+    
+            var circle_marker_133a47f265342fcd39e07235286f5581 = L.circleMarker(
+                [11.9416, 79.8083],
+                {"bubblingMouseEvents": true, "color": "#f72585", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f72585", "fillOpacity": 0.6, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 18, "stroke": true, "weight": 1.5}
+            ).addTo(map_4fcdd6f805e1853978cb4a145c92bb46);
+        
+    
+        var popup_632a7d28ea3bd4897a8ad1cc723aff76 = L.popup({
+  "maxWidth": 200,
+});
+
+        
+            
+                var html_cf9bd47725de0d68b03085f997ad630d = $(`<div id="html_cf9bd47725de0d68b03085f997ad630d" style="width: 100.0%; height: 100.0%;">         <div style='font-family: sans-serif; font-size: 12px; color: #333;'>             <strong>State:</strong> Puducherry<br>             <strong>Resistance Rate:</strong> 55.6%<br>             <strong>Total Isolates:</strong> 36         </div>         </div>`)[0];
+                popup_632a7d28ea3bd4897a8ad1cc723aff76.setContent(html_cf9bd47725de0d68b03085f997ad630d);
+            
+        
+
+        circle_marker_133a47f265342fcd39e07235286f5581.bindPopup(popup_632a7d28ea3bd4897a8ad1cc723aff76)
+        ;
+
+        
+    
+    
+            var circle_marker_8cef01ca9913cfb7cef683c2cc1f938b = L.circleMarker(
+                [11.1271, 78.6569],
+                {"bubblingMouseEvents": true, "color": "#4cc9f0", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4cc9f0", "fillOpacity": 0.6, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 23, "stroke": true, "weight": 1.5}
+            ).addTo(map_4fcdd6f805e1853978cb4a145c92bb46);
+        
+    
+        var popup_6c9b79d1f6913ff6a07c59bbed49410b = L.popup({
+  "maxWidth": 200,
+});
+
+        
+            
+                var html_a2912143ccce6f6b348c37cd1781df4a = $(`<div id="html_a2912143ccce6f6b348c37cd1781df4a" style="width: 100.0%; height: 100.0%;">         <div style='font-family: sans-serif; font-size: 12px; color: #333;'>             <strong>State:</strong> Tamil Nadu<br>             <strong>Resistance Rate:</strong> 2.2%<br>             <strong>Total Isolates:</strong> 46         </div>         </div>`)[0];
+                popup_6c9b79d1f6913ff6a07c59bbed49410b.setContent(html_a2912143ccce6f6b348c37cd1781df4a);
+            
+        
+
+        circle_marker_8cef01ca9913cfb7cef683c2cc1f938b.bindPopup(popup_6c9b79d1f6913ff6a07c59bbed49410b)
+        ;
+
+        
+    
+    
+            var circle_marker_9f4bb80362aa22ea892db96f30943e39 = L.circleMarker(
+                [22.9868, 87.855],
+                {"bubblingMouseEvents": true, "color": "#f72585", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f72585", "fillOpacity": 0.6, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8, "stroke": true, "weight": 1.5}
+            ).addTo(map_4fcdd6f805e1853978cb4a145c92bb46);
+        
+    
+        var popup_fad01f1db80ae8f49663efd42ab4f4bd = L.popup({
+  "maxWidth": 200,
+});
+
+        
+            
+                var html_fdbe7b886e596ba730a734607a3eb31e = $(`<div id="html_fdbe7b886e596ba730a734607a3eb31e" style="width: 100.0%; height: 100.0%;">         <div style='font-family: sans-serif; font-size: 12px; color: #333;'>             <strong>State:</strong> West Bengal<br>             <strong>Resistance Rate:</strong> 86.7%<br>             <strong>Total Isolates:</strong> 15         </div>         </div>`)[0];
+                popup_fad01f1db80ae8f49663efd42ab4f4bd.setContent(html_fdbe7b886e596ba730a734607a3eb31e);
+            
+        
+
+        circle_marker_9f4bb80362aa22ea892db96f30943e39.bindPopup(popup_fad01f1db80ae8f49663efd42ab4f4bd)
+        ;
+
+        
+    
+</script>
+</html>

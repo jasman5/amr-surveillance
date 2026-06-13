@@ -1,0 +1,25 @@
+Antibiotic,Setting,N,Resistant,PercentResistant
+Ciprofloxacin,Non-ICU,5862,3238,55.2
+Ciprofloxacin,ICU,5391,3408,63.2
+Meropenem,Non-ICU,7210,1983,27.5
+Meropenem,ICU,6006,2766,46.1
+Imipenem,Non-ICU,6000,1969,32.8
+Imipenem,ICU,5471,2664,48.7
+Amikacin,Non-ICU,6814,1985,29.1
+Amikacin,ICU,5943,2631,44.3
+Ceftazidime,Non-ICU,6545,3128,47.8
+Ceftazidime,ICU,5749,3533,61.5
+Piperacillin tazobactam,Non-ICU,6973,2475,35.5
+Piperacillin tazobactam,ICU,5964,3129,52.5
+Colistin,Non-ICU,5859,724,12.4
+Colistin,ICU,5385,514,9.5
+Levofloxacin,Non-ICU,9827,5512,56.1
+Levofloxacin,ICU,7476,4762,63.7
+Cefepime,Non-ICU,6869,3041,44.3
+Cefepime,ICU,5948,3473,58.4
+Gentamicin,Non-ICU,6234,2255,36.2
+Gentamicin,ICU,5113,2564,50.1
+Trimethoprim sulfa,Non-ICU,6236,2533,40.6
+Trimethoprim sulfa,ICU,5118,2705,52.9
+Tigecycline,Non-ICU,7782,21,0.3
+Tigecycline,ICU,5019,24,0.5

@@ -15,12 +15,106 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-  .block-container{padding-top:1.4rem;padding-bottom:1rem}
-  .section-title{font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;
-                 color:#8b95a8;margin-bottom:.3rem;margin-top:1rem}
-  div[data-testid="stTabs"] button{font-size:.82rem}
+
+/* GLOBAL */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+.block-container { padding-top: 1.2rem; padding-bottom: 1rem; padding-left: 2rem; padding-right: 2rem; max-width: 1400px; }
+
+/* SIDEBAR */
+[data-testid="stSidebar"] { background: #0a0d14; border-right: 1px solid #1a1f2e; }
+[data-testid="stSidebar"] .block-container { padding-top: 1.5rem; padding-left: 1.2rem; padding-right: 1.2rem; }
+
+/* TABS */
+div[data-testid="stTabs"] > div:first-child { border-bottom: 1px solid #1e2130; gap: 0; }
+div[data-testid="stTabs"] button { font-size: 0.78rem; font-weight: 500; letter-spacing: 0.03em; padding: 0.5rem 1rem; border-radius: 6px 6px 0 0; color: #8b95a8; transition: all 0.15s ease; }
+div[data-testid="stTabs"] button:hover { color: #c9d1d9; background: #12161f; }
+div[data-testid="stTabs"] button[aria-selected="true"] { color: #f72585; background: #12161f; border-bottom: 2px solid #f72585; font-weight: 600; }
+
+/* METRIC CARDS */
+[data-testid="stMetric"] { background: #0d1117; border: 1px solid #1e2130; border-radius: 10px; padding: 1rem 1.2rem; transition: border-color 0.2s ease; }
+[data-testid="stMetric"]:hover { border-color: #f72585; }
+[data-testid="stMetricLabel"] { font-size: 0.7rem !important; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: #8b95a8 !important; }
+[data-testid="stMetricValue"] { font-size: 1.6rem !important; font-weight: 700; color: #e6edf3 !important; line-height: 1.2; }
+[data-testid="stMetricDelta"] { font-size: 0.72rem !important; }
+
+/* SECTION LABELS */
+.section-title { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.14em; color: #8b95a8; margin-bottom: 0.5rem; margin-top: 1.2rem; padding-bottom: 0.3rem; border-bottom: 1px solid #1e2130; }
+
+/* SELECTBOX */
+[data-testid="stSelectbox"] > div > div { background: #0d1117; border: 1px solid #1e2130; border-radius: 6px; font-size: 0.82rem; color: #c9d1d9; transition: border-color 0.15s; }
+[data-testid="stSelectbox"] > div > div:hover, [data-testid="stSelectbox"] > div > div:focus-within { border-color: #f72585; }
+
+/* SLIDERS */
+[data-testid="stSlider"] > div > div > div > div { background: #f72585; }
+
+/* BUTTONS */
+[data-testid="stButton"] > button { background: linear-gradient(135deg, #f72585 0%, #7209b7 100%); color: white; border: none; border-radius: 6px; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.04em; padding: 0.5rem 1.4rem; transition: opacity 0.15s ease, transform 0.1s ease; cursor: pointer; }
+[data-testid="stButton"] > button:hover { opacity: 0.88; transform: translateY(-1px); }
+[data-testid="stButton"] > button:active { transform: translateY(0); }
+
+/* DATAFRAME */
+[data-testid="stDataFrame"] { border: 1px solid #1e2130; border-radius: 8px; overflow: hidden; }
+
+/* EXPANDER */
+[data-testid="stExpander"] { border: 1px solid #1e2130 !important; border-radius: 8px !important; background: #0a0d14; }
+[data-testid="stExpander"] summary { font-size: 0.8rem; font-weight: 500; color: #8b95a8; padding: 0.6rem 1rem; }
+
+/* ALERTS */
+[data-testid="stAlert"] { border-radius: 8px; border-width: 1px; font-size: 0.82rem; }
+
+/* DIVIDER */
+hr { border: none; border-top: 1px solid #1e2130; margin: 1rem 0; }
+
+/* HEADER BANNER */
+.dashboard-header { background: linear-gradient(135deg, #0d1117 0%, #130821 100%); border: 1px solid #1e2130; border-radius: 12px; padding: 1.2rem 1.8rem; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 1rem; }
+.dashboard-header h1 { font-size: 1.4rem; font-weight: 700; color: #e6edf3; margin: 0; line-height: 1.3; }
+.dashboard-header p { font-size: 0.78rem; color: #8b95a8; margin: 0; margin-top: 0.2rem; }
+
+/* BADGE CHIPS */
+.badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 20px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+.badge-red   { background: rgba(247,37,133,0.15); color: #f72585; border: 1px solid rgba(247,37,133,0.3); }
+.badge-blue  { background: rgba(76,201,240,0.12); color: #4cc9f0; border: 1px solid rgba(76,201,240,0.3); }
+.badge-gold  { background: rgba(248,150,30,0.12); color: #f8961e; border: 1px solid rgba(248,150,30,0.3); }
+
+/* RESISTANCE STATUS LABELS */
+.resist-high { color: #f72585; font-weight: 600; }
+.resist-low  { color: #4cc9f0; font-weight: 600; }
+.resist-mid  { color: #f8961e; font-weight: 600; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0a0d14; }
+::-webkit-scrollbar-thumb { background: #1e2130; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #f72585; }
+
 </style>
 """, unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PLOTLY DARK THEME — applied to every chart via apply_theme(fig)
+# ─────────────────────────────────────────────────────────────────────────────
+DARK_THEME = dict(
+    plot_bgcolor="#0d1117",
+    paper_bgcolor="#0d1117",
+    font_color="#c9d1d9",
+    font_family="Inter, sans-serif",
+    xaxis=dict(gridcolor="#1e2130", linecolor="#1e2130", tickcolor="#8b95a8",
+               tickfont=dict(size=10), title_font=dict(size=11)),
+    yaxis=dict(gridcolor="#1e2130", linecolor="#1e2130", tickcolor="#8b95a8",
+               tickfont=dict(size=10), title_font=dict(size=11)),
+    legend=dict(bgcolor="rgba(0,0,0,0)", bordercolor="#1e2130",
+                font=dict(size=10), orientation="h", y=-0.18),
+    margin=dict(t=10, b=0, l=0, r=0),
+    hoverlabel=dict(bgcolor="#1e2130", bordercolor="#f72585",
+                    font=dict(color="#e6edf3", size=11)),
+)
+
+def apply_theme(fig, **extra):
+    fig.update_layout(**DARK_THEME)
+    if extra:
+        fig.update_layout(**extra)
+    return fig
 
 # ─────────────────────────────────────────────────────────────────────────────
 # STATE COORDINATES (real lat/lng for the 5 ICMR states)
@@ -151,7 +245,13 @@ gene_cols  = genomic_out[2] if genomic_out else []
 # SIDEBAR
 # ─────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## 🧬 AMR Surveillance")
+    st.markdown("""
+<div style="padding:0.5rem 0 1rem 0; border-bottom:1px solid #1e2130; margin-bottom:1rem">
+    <div style="font-size:1.5rem; margin-bottom:0.3rem">🧬</div>
+    <div style="font-size:0.95rem; font-weight:700; color:#e6edf3; line-height:1.2">AMR Surveillance</div>
+    <div style="font-size:0.7rem; color:#8b95a8; margin-top:0.2rem">India · Multicentre Study</div>
+</div>
+""", unsafe_allow_html=True)
     st.markdown("**India · Multicentre Study**")
     st.markdown("---")
     if icmr is not None:
@@ -176,7 +276,20 @@ filtered = apply_filters(icmr) if icmr is not None else pd.DataFrame()
 # ─────────────────────────────────────────────────────────────────────────────
 # HEADER
 # ─────────────────────────────────────────────────────────────────────────────
-st.markdown("## 🧬 AMR Surveillance Dashboard · India")
+st.markdown("""
+<div class="dashboard-header">
+    <div style="font-size:2rem">🧬</div>
+    <div>
+        <h1>AMR Surveillance Dashboard · India</h1>
+        <p>
+            <span class="badge badge-red">ICMR Multicentre</span>&nbsp;
+            <span class="badge badge-blue">WHO GLASS 2017–2023</span>&nbsp;
+            <span class="badge badge-gold">Pfizer ATLAS 2004–2024</span>&nbsp;
+            <span class="badge badge-red">RF Model · AUC 0.985</span>
+        </p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 st.markdown("Multicentre Clinical Surveillance + WHO GLASS Trends + Genomic Resistance + AI Forecasting")
 st.markdown("---")
 
@@ -230,8 +343,8 @@ with tab1:
                 color_discrete_map={"Resistant":"#f72585","Susceptible":"#4cc9f0","Intermediate":"#f8961e","Unknown":"#555"},
                 labels={"organism_name":"","n":"Isolates","resistance":""},
             )
-            fig.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                              legend_orientation="h",xaxis_tickangle=-30,margin=dict(t=10,b=0))
+            apply_theme(fig)
+            fig.update_layout(legend_orientation="h",xaxis_tickangle=-30,margin=dict(t=10,b=0))
             st.plotly_chart(fig, use_container_width=True)
 
         with r1c2:
@@ -242,8 +355,8 @@ with tab1:
                 color_discrete_map={"Resistant":"#f72585","Susceptible":"#4cc9f0","Intermediate":"#f8961e","Unknown":"#555"},
                 labels={"ward_name":"","n":"Isolates","resistance":""},
             )
-            fig2.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                               legend_orientation="h",margin=dict(t=10,b=0))
+            apply_theme(fig2)
+            fig2.update_layout(legend_orientation="h",margin=dict(t=10,b=0))
             st.plotly_chart(fig2, use_container_width=True)
 
         st.markdown('<p class="section-title">Antibiogram Heatmap — % Resistant (organism × antibiotic)</p>', unsafe_allow_html=True)
@@ -258,8 +371,8 @@ with tab1:
             fig3 = px.imshow(pivot,
                 color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
                 zmin=0, zmax=100, labels=dict(color="% R"), aspect="auto", text_auto=".0f")
-            fig3.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                               xaxis_tickangle=-40,margin=dict(t=10,b=0),
+            apply_theme(fig3)
+            fig3.update_layout(xaxis_tickangle=-40,margin=dict(t=10,b=0),
                                coloraxis_colorbar=dict(title="% R"))
             st.plotly_chart(fig3, use_container_width=True)
 
@@ -270,8 +383,8 @@ with tab1:
             sc.columns = ["State","n"]
             fig4 = px.bar(sc, x="n", y="State", orientation="h",
                           color="n", color_continuous_scale=["#4361ee","#f72585"])
-            fig4.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                               showlegend=False,coloraxis_showscale=False,margin=dict(t=10,b=0))
+            apply_theme(fig4)
+            fig4.update_layout(showlegend=False,coloraxis_showscale=False,margin=dict(t=10,b=0))
             st.plotly_chart(fig4, use_container_width=True)
 
         with r2c2:
@@ -290,8 +403,8 @@ with tab1:
             samp.columns = ["Sample","n"]
             fig6 = px.bar(samp, x="n", y="Sample", orientation="h",
                           color_discrete_sequence=["#4361ee"])
-            fig6.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                               margin=dict(t=10,b=0))
+            apply_theme(fig6)
+            fig6.update_layout(margin=dict(t=10,b=0))
             st.plotly_chart(fig6, use_container_width=True)
 
         st.markdown('<p class="section-title">Antibiotic Effectiveness Ranking (lowest resistance = most effective)</p>', unsafe_allow_html=True)
@@ -305,8 +418,8 @@ with tab1:
                         color="Resistance Rate",
                         color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
                         labels={"Resistance Rate":"Resistance %"})
-        fig_ab.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                             coloraxis_showscale=False,margin=dict(t=10,b=0))
+        apply_theme(fig_ab)
+        fig_ab.update_layout(coloraxis_showscale=False,margin=dict(t=10,b=0))
         st.plotly_chart(fig_ab, use_container_width=True)
 
         with st.expander("📋 Raw data table"):
@@ -355,8 +468,8 @@ with tab2:
                         barmode="group",
                         color_discrete_map={"ICU":"#f72585","OPD":"#4cc9f0","Ward":"#f8961e"},
                         labels={"state_name":"State","resistance_pct":"Resistance %","ward_name":""})
-        fig_ws.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
-                             font_color="#c9d1d9",legend_orientation="h",margin=dict(t=10,b=0))
+        apply_theme(fig_ws)
+        fig_ws.update_layout(legend_orientation="h",margin=dict(t=10,b=0))
         st.plotly_chart(fig_ws, use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -415,13 +528,11 @@ with tab3:
                          line_color="#f8961e",
                          annotation_text=f"Current: {current_rate*100:.1f}%",
                          annotation_position="bottom right")
-        fig_fc.update_layout(
-            plot_bgcolor="#0f1117", paper_bgcolor="#0f1117",
-            font_color="#c9d1d9", legend_orientation="h",
+        apply_theme(fig_fc)
+        fig_fc.update_layout(legend_orientation="h",
             xaxis_title="Year", yaxis_title="Resistance Rate %",
             yaxis_range=[0,100], margin=dict(t=10,b=0),
-            title=f"{forecast_org} — Resistance Trend Projection"
-        )
+            title=f"{forecast_org} — Resistance Trend Projection")
         st.plotly_chart(fig_fc, use_container_width=True)
 
         st.markdown('<p class="section-title">Forecast Values</p>', unsafe_allow_html=True)
@@ -445,8 +556,8 @@ with tab3:
                          orientation="h", color="Resistance %",
                          color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
                          labels={"organism_name":"Organism"})
-        fig_all.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
-                              font_color="#c9d1d9",coloraxis_showscale=False,
+        apply_theme(fig_all)
+        fig_all.update_layout(coloraxis_showscale=False,
                               margin=dict(t=10,b=0))
         st.plotly_chart(fig_all, use_container_width=True)
 
@@ -466,8 +577,8 @@ with tab3:
                         x=sub["Year"], y=sub["TotalBCIsWithAST"],
                         marker_color="#f72585", name="Isolates tested"
                     ))
-                    fig_sdg.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
-                                          font_color="#c9d1d9",margin=dict(t=10,b=0),
+                    apply_theme(fig_sdg)
+                    fig_sdg.update_layout(margin=dict(t=10,b=0),
                                           xaxis_title="Year",yaxis_title="Isolates")
                     st.plotly_chart(fig_sdg, use_container_width=True)
 
@@ -507,8 +618,8 @@ with tab4:
             fig_t = px.line(trend, x="Year", y="PercentResistant", color="PathogenName",
                             markers=True, labels={"PercentResistant":"% Resistant"},
                             color_discrete_sequence=px.colors.qualitative.Bold)
-            fig_t.update_layout(plot_bgcolor="#0f1117", paper_bgcolor="#0f1117",
-                                font_color="#c9d1d9", legend_orientation="h",
+            apply_theme(fig_t)
+            fig_t.update_layout(legend_orientation="h",
                                 yaxis_range=[0,100], margin=dict(t=10, b=0))
             st.plotly_chart(fig_t, use_container_width=True)
 
@@ -521,8 +632,8 @@ with tab4:
                                 color="PercentResistant",
                                 color_continuous_scale=[[0,"#4cc9f0"], [0.5,"#f8961e"], [1,"#f72585"]],
                                 labels={"PercentResistant":"% R", "AbTargets":"Antibiotic"})
-                fig_ab.update_layout(plot_bgcolor="#0f1117", paper_bgcolor="#0f1117",
-                                     font_color="#c9d1d9", coloraxis_showscale=False, margin=dict(t=10, b=0))
+                apply_theme(fig_ab)
+                fig_ab.update_layout(coloraxis_showscale=False, margin=dict(t=10, b=0))
                 st.plotly_chart(fig_ab, use_container_width=True)
             else:
                 st.caption("No timeline segments available for current antibiotic targets.")
@@ -536,8 +647,8 @@ with tab4:
                                  color_continuous_scale=[[0,"#4cc9f0"], [0.5,"#f8961e"], [1,"#f72585"]],
                                  zmin=0, zmax=100, labels=dict(color="% R"),
                                  aspect="auto", text_auto=".0f")
-            fig_heat.update_layout(plot_bgcolor="#0f1117", paper_bgcolor="#0f1117",
-                                   font_color="#c9d1d9", xaxis_tickangle=-40,
+            apply_theme(fig_heat)
+            fig_heat.update_layout(xaxis_tickangle=-40,
                                    margin=dict(t=10, b=0))
             st.plotly_chart(fig_heat, use_container_width=True)
 
@@ -560,8 +671,8 @@ with tab4:
             fig_rank = px.bar(country_avg, x="PercentResistant", y="CountryTerritoryArea",
                               orientation="h", color="color", color_discrete_map="identity",
                               labels={"PercentResistant":"Avg % Resistant", "CountryTerritoryArea":"Country"})
-            fig_rank.update_layout(plot_bgcolor="#0f1117", paper_bgcolor="#0f1117",
-                                   font_color="#c9d1d9", showlegend=False,
+            apply_theme(fig_rank)
+            fig_rank.update_layout(showlegend=False,
                                    height=max(400, len(country_avg)*18), margin=dict(t=10, b=0))
             st.plotly_chart(fig_rank, use_container_width=True)
             st.caption("🔴 India highlighted in pink")
@@ -578,8 +689,8 @@ with tab4:
                               markers=True,
                               color_discrete_map={"India":"#f72585", "Global Average":"#4cc9f0"},
                               labels={"PercentResistant":"% Resistant"})
-            fig_cmp.update_layout(plot_bgcolor="#0f1117", paper_bgcolor="#0f1117",
-                                  font_color="#c9d1d9", yaxis_range=[0,100],
+            apply_theme(fig_cmp)
+            fig_cmp.update_layout(yaxis_range=[0,100],
                                   legend_orientation="h", margin=dict(t=10, b=0))
             st.plotly_chart(fig_cmp, use_container_width=True)
         else:
@@ -606,8 +717,8 @@ with tab4:
                             color="TotalBCIsWithAST", color_continuous_scale=["#4cc9f0", "#f72585"],
                             labels={"TotalBCIsWithAST":"Isolates tested", "AntibioticName":"Antibiotic"},
                             title=f"{sel_p} · India 2023")
-            fig_23.update_layout(plot_bgcolor="#0f1117", paper_bgcolor="#0f1117",
-                                 font_color="#c9d1d9", coloraxis_showscale=False, margin=dict(t=30, b=0))
+            apply_theme(fig_23)
+            fig_23.update_layout(coloraxis_showscale=False, margin=dict(t=30, b=0))
             st.plotly_chart(fig_23, use_container_width=True)
             
 # ══════════════════════════════════════════════════════════════════════════════
@@ -634,8 +745,8 @@ with tab5:
             fig_cls = px.bar(class_prev, x="Resistant Isolates", y="Drug Class", orientation="h",
                              color="Resistant Isolates",
                              color_continuous_scale=["#4cc9f0","#f72585"])
-            fig_cls.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                                  coloraxis_showscale=False,margin=dict(t=10,b=0))
+            apply_theme(fig_cls)
+            fig_cls.update_layout(coloraxis_showscale=False,margin=dict(t=10,b=0))
             st.plotly_chart(fig_cls, use_container_width=True)
 
         with gc2:
@@ -647,16 +758,16 @@ with tab5:
             gene_freq["Gene"] = gene_freq["Gene"].str.replace("gene_","")
             fig_gene = px.bar(gene_freq, x="Count", y="Gene", orientation="h",
                               color_discrete_sequence=["#4361ee"])
-            fig_gene.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                                   margin=dict(t=10,b=0))
+            apply_theme(fig_gene)
+            fig_gene.update_layout(margin=dict(t=10,b=0))
             st.plotly_chart(fig_gene, use_container_width=True)
 
         st.markdown('<p class="section-title">Resistance Burden per Isolate</p>', unsafe_allow_html=True)
         fig_dist = px.histogram(genomic_df, x="total_amr_genes", nbins=15,
                                 labels={"total_amr_genes":"AMR genes per isolate"},
                                 color_discrete_sequence=["#f72585"])
-        fig_dist.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                               margin=dict(t=10,b=0),bargap=0.1)
+        apply_theme(fig_dist)
+        fig_dist.update_layout(margin=dict(t=10,b=0),bargap=0.1)
         st.plotly_chart(fig_dist, use_container_width=True)
 
         st.markdown('<p class="section-title">Clinically Significant Resistance Genes</p>', unsafe_allow_html=True)
@@ -769,8 +880,8 @@ with tab6:
                              orientation="h", color="Resistance Risk %",
                              color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]],
                              labels={"Resistance Risk %":"Resistance Risk %"})
-            fig_rec.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",
-                                  font_color="#c9d1d9",coloraxis_showscale=False,
+            apply_theme(fig_rec)
+            fig_rec.update_layout(coloraxis_showscale=False,
                                   margin=dict(t=10,b=0))
             st.plotly_chart(fig_rec, use_container_width=True)
             st.dataframe(rec_df, use_container_width=True)
@@ -781,8 +892,8 @@ with tab6:
                            columns=["Feature","Importance"]).sort_values("Importance")
         fig_imp = px.bar(imp, x="Importance", y="Feature", orientation="h",
                          color="Importance", color_continuous_scale=["#4361ee","#f72585"])
-        fig_imp.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",
-                              coloraxis_showscale=False,margin=dict(t=10,b=0),height=280)
+        apply_theme(fig_imp)
+        fig_imp.update_layout(coloraxis_showscale=False,margin=dict(t=10,b=0),height=280)
         st.plotly_chart(fig_imp, use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -823,38 +934,40 @@ with tab7:
             fig_trend = go.Figure()
             fig_trend.add_trace(go.Scatter(x=trend_sub["Year"], y=trend_sub["PercentResistant"], mode="lines+markers", name="% Resistant", line=dict(color="#f72585", width=2)))
             fig_trend.add_trace(go.Bar(x=trend_sub["Year"], y=trend_sub["N"], name="Isolates tested", yaxis="y2", marker_color="rgba(76,201,240,0.3)"))
-            fig_trend.update_layout(
-                plot_bgcolor="#0f1117", paper_bgcolor="#0f1117", font_color="#c9d1d9",
-                xaxis_title="Year", yaxis=dict(title="% Resistant", range=[0,100]),
+            apply_theme(fig_trend)
+            fig_trend.update_layout(xaxis_title="Year", yaxis=dict(title="% Resistant", range=[0,100]),
                 yaxis2=dict(title="Isolates tested", overlaying="y", side="right", showgrid=False),
-                legend_orientation="h", margin=dict(t=40,b=0)
-            )
+                legend_orientation="h", margin=dict(t=40,b=0))
             st.plotly_chart(fig_trend, use_container_width=True)
 
         st.markdown('<p class="section-title">All Species — Same Antibiotic, Latest Year Available</p>', unsafe_allow_html=True)
         same_ab = yearly[yearly["Antibiotic"]==atlas_abx].copy()
         latest_per_species = same_ab.sort_values("Year").groupby("Species").tail(1)
         fig_sp = px.bar(latest_per_species.sort_values("PercentResistant"), x="PercentResistant", y="Species", orientation="h", color="PercentResistant", color_continuous_scale=[[0,"#4cc9f0"],[1,"#f72585"]])
-        fig_sp.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",coloraxis_showscale=False,margin=dict(t=10,b=0))
+        apply_theme(fig_sp)
+        fig_sp.update_layout(coloraxis_showscale=False,margin=dict(t=10,b=0))
         st.plotly_chart(fig_sp, use_container_width=True)
 
         st.markdown("---")
         st.markdown("#### 🏨 ICU vs Non-ICU Resistance — India (all years)")
         fig_icu = px.bar(icu_df, x="Antibiotic", y="PercentResistant", color="Setting", barmode="group", color_discrete_map={"ICU":"#f72585","Non-ICU":"#4cc9f0"})
-        fig_icu.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",legend_orientation="h",xaxis_tickangle=-30,margin=dict(t=10,b=0))
+        apply_theme(fig_icu)
+        fig_icu.update_layout(legend_orientation="h",xaxis_tickangle=-30,margin=dict(t=10,b=0))
         st.plotly_chart(fig_icu, use_container_width=True)
 
         st.markdown("---")
         st.markdown("#### 🔥 Species × Antibiotic Resistance Heatmap (2020–2024)")
         heat_pivot = heat_df.pivot(index="Species", columns="Antibiotic", values="PercentResistant")
         fig_atlas_heat = px.imshow(heat_pivot, color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]], zmin=0, zmax=100, labels=dict(color="% R"), aspect="auto", text_auto=".0f")
-        fig_atlas_heat.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",xaxis_tickangle=-40,margin=dict(t=10,b=0))
+        apply_theme(fig_atlas_heat)
+        fig_atlas_heat.update_layout(xaxis_tickangle=-40,margin=dict(t=10,b=0))
         st.plotly_chart(fig_atlas_heat, use_container_width=True)
 
         st.markdown("---")
         st.markdown("#### 🧬 Resistance Gene Detections — India")
         fig_gene = px.bar(gene_df, x="Detections", y="Gene", orientation="h", color="Detections", color_continuous_scale=["#4361ee","#f72585"])
-        fig_gene.update_layout(plot_bgcolor="#0f1117",paper_bgcolor="#0f1117",font_color="#c9d1d9",coloraxis_showscale=False,margin=dict(t=10,b=0))
+        apply_theme(fig_gene)
+        fig_gene.update_layout(coloraxis_showscale=False,margin=dict(t=10,b=0))
         st.plotly_chart(fig_gene, use_container_width=True)
 
         # ── UPGRADED GLOBAL SURVEILLANCE MAP PANEL ───────────────────────────

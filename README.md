@@ -33,6 +33,22 @@ In India, resistance patterns differ by organism, state, and hospital. 78% of th
 - PubMed E-utilities API
 
 ## Setup
+
+only for pvt repo to remember
+
+PUSH 
+```bash
+C:\amr_project
+git status
+git add .
+git commit -m "Fixed dashboard layout"
+git push origin main
+
+PULL
+```bash
+git status
+git pull origin main
+
 ```bash
 pip install -r requirements.txt
 python merge_icmr.py       # build master dataset

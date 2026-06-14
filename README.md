@@ -32,9 +32,20 @@ In India, resistance patterns differ by organism, state, and hospital. 78% of th
 - Kaggle AMR Genomic dataset
 - PubMed E-utilities API
 
-## Setup
+## setup
 
-only for pvt repo to remember
+```bash
+pip install -r requirements.txt
+python merge_icmr.py       # build master dataset
+python train_model.py      # train + save model
+streamlit run dashboard.py # launch dashboard
+```
+
+> ⚠️ Clinical datasets are excluded from this repository (patient privacy).
+> Contact for access or use the setup scripts to pull from public sources.
+
+
+## only for pvt repo to remember
 
 PUSH 
 ```bash
@@ -48,13 +59,3 @@ PULL
 ```bash
 git status
 git pull origin main
-
-```bash
-pip install -r requirements.txt
-python merge_icmr.py       # build master dataset
-python train_model.py      # train + save model
-streamlit run dashboard.py # launch dashboard
-```
-
-> ⚠️ Clinical datasets are excluded from this repository (patient privacy).
-> Contact for access or use the setup scripts to pull from public sources.

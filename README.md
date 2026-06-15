@@ -11,18 +11,20 @@ In India, resistance patterns differ by organism, state, and hospital. 78% of th
 |---|---|---|
 | Data Pipeline | `merge_icmr.py` | Decodes 4 ICMR Stata tables into unified clinical records |
 | ML Model | `train_model.py` | Random Forest resistance predictor (94.6% accuracy, AUC 0.985) |
+> ⚠️ AUC 0.983 achieved on ICMR subset (n=130). External validation on larger cohort recommended before clinical deployment.
 | NLP Miner | `nlp_processor.py` | SciSpacy NER extracts pathogen/antibiotic mentions from PubMed |
-| Dashboard | `dashboard.py` | 6-tab Streamlit interface with maps, heatmaps, forecasting, live predictor |
+| Dashboard | `dashboard.py` | 7-tab Streamlit interface with maps, heatmaps, forecasting, live predictor |
 | Forecasting | `forecast_amr.py` | Linear regression resistance trend projection |
 
 ## Dashboard Tabs
-1. **ICMR Clinical** — Antibiogram heatmap, ward breakdown, state distribution
-2. **India Map** — Plotly geo-bubble map of resistance by state
-3. **Forecast** — Resistance trend projection per organism
-4. **WHO GLASS** — India vs global trends 2017–2020
-5. **Genomic** — Resistance gene prevalence in *E. coli* isolates
-6. **Predictor** — Enter patient details → get resistance probability + antibiotic ranking
-
+1. **ICMR Clinical** — Antibiogram heatmap, ward breakdown, age group stratification, ICU-specific antibiogram, state distribution, antibiotic effectiveness ranking
+2. **India Map** — Interactive folium map of resistance by state, ICU vs OPD comparison by state
+3. **Forecast** — Linear regression resistance trend projection per organism with 95% confidence bands and WHO GLASS SDG indicators
+4. **WHO GLASS** — India resistance trends 2017–2020, global country ranking, India vs global baseline comparison
+5. **Genomic** — Drug class prevalence, top 15 resistance genes, AMR burden per isolate, clinically significant gene table (*E. coli*, n=50)
+6. **Predictor** — Enter patient profile → resistance probability gauge + full antibiotic ranking with recommendations + consultation history log
+7. **ATLAS Global** — Pfizer/Vivli 20-year India trends (2004–2024), ICU vs non-ICU comparison, species × antibiotic heatmap, global choropleth map
+   
 ## Stack
 `Python` `Pandas` `Scikit-learn` `Streamlit` `Plotly` `SciSpacy` `Biopython` `Folium` `Seaborn`
 
@@ -45,14 +47,22 @@ streamlit run dashboard.py # launch dashboard
 > Contact for access or use the setup scripts to pull from public sources.
 
 
-## only for pvt repo to remember
+## Only for pvt repo (do not publish)
 
-PUSH 
+### PUSH
 ```bash
-C:\amr_project
+cd C:\projects\amr_project
 git status
 git add .
-git commit -m "Fixed dashboard layout"
+git commit -m "your message"
+git push origin main
+```
+
+### PULL
+```bash
+git status
+git pull origin main
+```
 git push origin main
 
 PULL

@@ -279,8 +279,9 @@ def apply_filters(df):
     if sel_state != "All States":    df = df[df["state_name"]    == sel_state]
     if sel_org   != "All Organisms": df = df[df["organism_name"] == sel_org]
     if sel_ward  != "All Wards":     df = df[df["ward_name"]     == sel_ward]
+    if len(df) < 30:
+        st.warning(f"⚠️ Only {len(df)} isolates match this filter. Results may not be statistically meaningful.")
     return df
-
 filtered = apply_filters(icmr) if icmr is not None else pd.DataFrame()
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -354,7 +355,7 @@ with tab1:
             )
             apply_theme(fig)
             fig.update_layout(legend_orientation="h",xaxis_tickangle=-30,margin=dict(t=10,b=0))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
         with r1c2:
             st.markdown('<p class="section-title">Resistance by Ward Type</p>', unsafe_allow_html=True)
@@ -366,7 +367,7 @@ with tab1:
             )
             apply_theme(fig2)
             fig2.update_layout(legend_orientation="h",margin=dict(t=10,b=0))
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, width='stretch')
 
         # v1 Feature Injections — Demographic Profiles (Age Group + Urban/Rural + Departments)
         st.markdown('<p class="section-title">Isolate Demographic & Care Stratifications</p>', unsafe_allow_html=True)
@@ -377,7 +378,7 @@ with tab1:
                              x="age_group", y="count", color="resistance", barmode="stack",
                              color_discrete_map={"Resistant":"#f72585","Susceptible":"#4cc9f0","Intermediate":"#f8961e","Unknown":"#555"})
             apply_theme(fig_age)
-            st.plotly_chart(fig_age, use_container_width=True)
+            st.plotly_chart(fig_age, width='stretch')
         with demo2:
             st.markdown('<p class="section-title">Rural vs Urban Distribution</p>', unsafe_allow_html=True)
             if "location_type_name" in filtered.columns:
@@ -385,7 +386,7 @@ with tab1:
                                  x="location_type_name", y="count", color="resistance", barmode="group",
                                  color_discrete_map={"Resistant":"#f72585","Susceptible":"#4cc9f0","Intermediate":"#f8961e","Unknown":"#555"})
                 apply_theme(fig_loc)
-                st.plotly_chart(fig_loc, use_container_width=True)
+                st.plotly_chart(fig_loc, width='stretch')
             else:
                 st.caption("Location profile markers not populated in subset.")
         with demo3:
@@ -395,7 +396,7 @@ with tab1:
                 fig_dept = px.bar(dept_summary, x="count", y="dept_name", color="resistance", orientation="h",
                                   color_discrete_map={"Resistant":"#f72585","Susceptible":"#4cc9f0","Intermediate":"#f8961e","Unknown":"#555"})
                 apply_theme(fig_dept)
-                st.plotly_chart(fig_dept, use_container_width=True)
+                st.plotly_chart(fig_dept, width='stretch')
 
         st.markdown('<p class="section-title">Antibiogram Heatmap — % Resistant (organism × antibiotic)</p>', unsafe_allow_html=True)
         ab_data = filtered[filtered["resistance"].isin(["Resistant","Susceptible"])]
@@ -412,11 +413,13 @@ with tab1:
             apply_theme(fig3)
             fig3.update_layout(xaxis_tickangle=-40,margin=dict(t=10,b=0),
                                coloraxis_colorbar=dict(title="% R"))
-            st.plotly_chart(fig3, use_container_width=True)
+            st.plotly_chart(fig3, width='stretch')
 
         # v1 Feature Injection — ICU-Specific Target Antibiogram Sub-analysis
         st.markdown('<p class="section-title">ICU-Specific Antibiogram Mapping Layer</p>', unsafe_allow_html=True)
-        icu_isolates = filtered[filtered["ward_name"] == "ICU"]
+        # icu_isolates = filtered[filtered["ward_name"] == "ICU"]
+        icu_isolates = filtered[filtered["ward_name"].str.upper().str.contains("ICU", na=False)]
+        
         icu_ab = icu_isolates[icu_isolates["resistance"].isin(["Resistant","Susceptible"])]
         if not icu_ab.empty:
             icu_pivot = (icu_ab.groupby(["organism_name","antibiotic_name"])
@@ -424,7 +427,7 @@ with tab1:
                          .reset_index(name="pct").pivot(index="organism_name", columns="antibiotic_name", values="pct"))
             fig_icu_heat = px.imshow(icu_pivot, color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]], zmin=0, zmax=100, aspect="auto", text_auto=".0f")
             apply_theme(fig_icu_heat)
-            st.plotly_chart(fig_icu_heat, use_container_width=True)
+            st.plotly_chart(fig_icu_heat, width='stretch')
         else:
             st.caption("Insufficient ICU-isolated encounters to compile a distinct care-unit antibiogram.")
 
@@ -437,7 +440,7 @@ with tab1:
                           color="n", color_continuous_scale=["#4361ee","#f72585"])
             apply_theme(fig4)
             fig4.update_layout(showlegend=False,coloraxis_showscale=False,margin=dict(t=10,b=0))
-            st.plotly_chart(fig4, use_container_width=True)
+            st.plotly_chart(fig4, width='stretch')
 
         with r2c2:
             st.markdown('<p class="section-title">Infection Acquisition</p>', unsafe_allow_html=True)
@@ -447,7 +450,7 @@ with tab1:
                           color_discrete_sequence=["#f72585","#4cc9f0","#f8961e"], hole=0.5)
             fig5.update_layout(paper_bgcolor="#0f1117",font_color="#c9d1d9",
                                margin=dict(t=10,b=0),legend=dict(orientation="h",y=-0.15))
-            st.plotly_chart(fig5, use_container_width=True)
+            st.plotly_chart(fig5, width='stretch')
 
         with r2c3:
             st.markdown('<p class="section-title">Sample Type Distribution</p>', unsafe_allow_html=True)
@@ -457,7 +460,7 @@ with tab1:
                           color_discrete_sequence=["#4361ee"])
             apply_theme(fig6)
             fig6.update_layout(margin=dict(t=10,b=0))
-            st.plotly_chart(fig6, use_container_width=True)
+            st.plotly_chart(fig6, width='stretch')
 
         st.markdown('<p class="section-title">Antibiotic Effectiveness Ranking (lowest resistance = most effective)</p>', unsafe_allow_html=True)
         ab_rank = (filtered[filtered["is_resistant"].notna()]
@@ -472,13 +475,13 @@ with tab1:
                         labels={"Resistance Rate":"Resistance %"})
         apply_theme(fig_ab)
         fig_ab.update_layout(coloraxis_showscale=False,margin=dict(t=10,b=0))
-        st.plotly_chart(fig_ab, use_container_width=True)
+        st.plotly_chart(fig_ab, width='stretch')
 
         with st.expander("📋 Raw data table"):
             show = ["organism_name","antibiotic_name","resistance","state_name",
                     "ward_name","infection_type","sample_type_name","age","gender_label","dept_name"]
             export_df = filtered[show].reset_index(drop=True)
-            st.dataframe(export_df, use_container_width=True)
+            st.dataframe(export_df, width='stretch')
             # v1 Feature Injection — Automated download exporter for subset
             csv_data = export_df.to_csv(index=False).encode('utf-8')
             st.download_button(label="📥 Download Filtered Clinical Subset (CSV)", data=csv_data, file_name="filtered_clinical_amr_records.csv", mime="text/csv")
@@ -497,7 +500,9 @@ with tab2:
         if os.path.exists(map_path):
             with open(map_path, "r", encoding="utf-8") as f:
                 html_map_content = f.read()
-            components.html(html_map_content, height=550, scrolling=False)
+            # components.html(html_map_content, height=550, scrolling=False)
+            # st.iframe(html_map_content, height=550, scrolling=False)
+            st.iframe(html_map_content, height=550)
         else:
             st.warning("⚠️ Native amr_india_map.html asset not found inside Dataset/processed/. Run choropleth_map.py first.")
 
@@ -513,7 +518,7 @@ with tab2:
         display = state_stats[["state_name","resistance_pct","total_isolates","resistant_count"]].copy()
         display.columns = ["State","Resistance %","Total Isolates","Resistant Isolates"]
         display = display.sort_values("Resistance %", ascending=False)
-        st.dataframe(display, use_container_width=True)
+        st.dataframe(display, width='stretch')
 
         st.markdown('<p class="section-title">ICU vs OPD Resistance by State</p>', unsafe_allow_html=True)
         ward_state = (map_df[map_df["ward_name"].isin(["ICU","OPD"])]
@@ -526,7 +531,7 @@ with tab2:
                         labels={"state_name":"State","resistance_pct":"Resistance %","ward_name":""})
         apply_theme(fig_ws)
         fig_ws.update_layout(legend_orientation="h",margin=dict(t=10,b=0))
-        st.plotly_chart(fig_ws, use_container_width=True)
+        st.plotly_chart(fig_ws, width='stretch')
 
 # ==============================================================================
 # TAB 3 — FORECAST
@@ -545,8 +550,19 @@ with tab3:
         with fc2:
             forecast_years = st.slider("Forecast horizon (years ahead)", 1, 10, 5)
 
-        fc_df = icmr[icmr["organism_name"] == forecast_org].dropna(subset=["is_resistant"])
-        current_rate = fc_df["is_resistant"].mean() if not fc_df.empty else 0.50
+        # fc_df = icmr[icmr["organism_name"] == forecast_org].dropna(subset=["is_resistant"])
+        # current_rate = fc_df["is_resistant"].mean() if not fc_df.empty else 0.50
+        
+        fc_df = icmr[icmr["organism_name"] == forecast_org].copy()
+
+        if fc_df["is_resistant"].notna().sum() > 5:
+            current_rate = fc_df["is_resistant"].dropna().mean()
+        else:
+            res_counts = fc_df["resistance"].value_counts()
+            resistant = res_counts.get("Resistant", 0)
+            susceptible = res_counts.get("Susceptible", 0)
+            total = resistant + susceptible
+            current_rate = resistant / total if total > 0 else 0.50
 
         hist_years = np.array([2020,2021,2022,2023]).reshape(-1,1)
         hist_rates = np.array([
@@ -597,7 +613,7 @@ with tab3:
             xaxis_title="Year", yaxis_title="Resistance Rate %",
             yaxis_range=[0,100], margin=dict(t=10,b=0),
             title=f"{forecast_org} — Resistance Trend Projection")
-        st.plotly_chart(fig_fc, use_container_width=True)
+        st.plotly_chart(fig_fc, width='stretch')
 
         st.markdown('<p class="section-title">Forecast Values</p>', unsafe_allow_html=True)
         fc_table = pd.DataFrame({
@@ -608,7 +624,7 @@ with tab3:
         fc_table["Change from current"] = fc_table["Change from current"].round(1).apply(
             lambda x: f"+{x}%" if x >= 0 else f"{x}%"
         )
-        st.dataframe(fc_table, use_container_width=True)
+        st.dataframe(fc_table, width='stretch')
 
         st.markdown('<p class="section-title">All Organisms — Current Resistance Rate Comparison</p>', unsafe_allow_html=True)
         all_org_rates = (icmr.dropna(subset=["is_resistant"])
@@ -622,7 +638,7 @@ with tab3:
                          labels={"organism_name":"Organism"})
         apply_theme(fig_all)
         fig_all.update_layout(coloraxis_showscale=False, margin=dict(t=10,b=0))
-        st.plotly_chart(fig_all, use_container_width=True)
+        st.plotly_chart(fig_all, width='stretch')
 
         if sdg is not None:
             st.markdown("---")
@@ -643,7 +659,7 @@ with tab3:
                     apply_theme(fig_sdg)
                     fig_sdg.update_layout(margin=dict(t=10,b=0),
                                           xaxis_title="Year",yaxis_title="Isolates")
-                    st.plotly_chart(fig_sdg, use_container_width=True)
+                    st.plotly_chart(fig_sdg, width='stretch')
 
 # ==============================================================================
 # TAB 4 — WHO GLASS
@@ -683,7 +699,7 @@ with tab4:
                             color_discrete_sequence=px.colors.qualitative.Bold)
             apply_theme(fig_t)
             fig_t.update_layout(legend_orientation="h", yaxis_range=[0,100], margin=dict(t=10, b=0))
-            st.plotly_chart(fig_t, use_container_width=True)
+            st.plotly_chart(fig_t, width='stretch')
 
         with r1c2:
             st.markdown('<p class="section-title">Resistance by Antibiotic (latest year)</p>', unsafe_allow_html=True)
@@ -696,7 +712,7 @@ with tab4:
                                 labels={"PercentResistant":"% R", "AbTargets":"Antibiotic"})
                 apply_theme(fig_ab)
                 fig_ab.update_layout(coloraxis_showscale=False, margin=dict(t=10, b=0))
-                st.plotly_chart(fig_ab, use_container_width=True)
+                st.plotly_chart(fig_ab, width='stretch')
             else:
                 st.caption("No timeline segments available for current antibiotic targets.")
 
@@ -711,7 +727,7 @@ with tab4:
                                  aspect="auto", text_auto=".0f")
             apply_theme(fig_heat)
             fig_heat.update_layout(xaxis_tickangle=-40, margin=dict(t=10, b=0))
-            st.plotly_chart(fig_heat, use_container_width=True)
+            st.plotly_chart(fig_heat, width='stretch')
 
         st.markdown("---")
         st.markdown("### 🌍 Global Comparison — India vs World")
@@ -734,7 +750,7 @@ with tab4:
                               labels={"PercentResistant":"Avg % Resistant", "CountryTerritoryArea":"Country"})
             apply_theme(fig_rank)
             fig_rank.update_layout(showlegend=False, height=max(400, len(country_avg)*18), margin=dict(t=10, b=0))
-            st.plotly_chart(fig_rank, use_container_width=True)
+            st.plotly_chart(fig_rank, width='stretch')
             st.caption("🔴 India highlighted in pink")
 
             st.markdown('<p class="section-title">Longitudinal Trend Analysis — India vs Global Baseline</p>', unsafe_allow_html=True)
@@ -751,7 +767,7 @@ with tab4:
                               labels={"PercentResistant":"% Resistant"})
             apply_theme(fig_cmp)
             fig_cmp.update_layout(yaxis_range=[0,100], legend_orientation="h", margin=dict(t=10, b=0))
-            st.plotly_chart(fig_cmp, use_container_width=True)
+            st.plotly_chart(fig_cmp, width='stretch')
         else:
             st.warning("No global entries found matching this pathogen-antibiotic combination.")
 
@@ -769,7 +785,7 @@ with tab4:
         summary["AboveGlobal"] = summary["avg_resistance"].apply(lambda x: "🔴 Yes" if x > global_mean_val else "🔵 No")
         summary["YoY Change Estimate"] = "+1.4% (Risin)"  # Matching v1 signature table
         summary.columns = ["Pathogen", "Antibiotic", "Avg Resistance %", "Total Isolates", "Years Reported", "Exceeds Global Baseline?", "YoY Delta Profile"]
-        st.dataframe(summary, use_container_width=True)
+        st.dataframe(summary, width='stretch')
 
 # ==============================================================================
 # TAB 5 — GENOMIC
@@ -797,7 +813,7 @@ with tab5:
                              color_continuous_scale=["#4cc9f0","#f72585"])
             apply_theme(fig_cls)
             fig_cls.update_layout(coloraxis_showscale=False,margin=dict(t=10,b=0))
-            st.plotly_chart(fig_cls, use_container_width=True)
+            st.plotly_chart(fig_cls, width='stretch')
 
         with gc2:
             st.markdown('<p class="section-title">Top 15 Resistance Genes</p>', unsafe_allow_html=True)
@@ -810,7 +826,7 @@ with tab5:
                               color_discrete_sequence=["#4361ee"])
             apply_theme(fig_gene)
             fig_gene.update_layout(margin=dict(t=10,b=0))
-            st.plotly_chart(fig_gene, use_container_width=True)
+            st.plotly_chart(fig_gene, width='stretch')
 
         st.markdown('<p class="section-title">Resistance Burden per Isolate</p>', unsafe_allow_html=True)
         fig_dist = px.histogram(genomic_df, x="total_amr_genes", nbins=15,
@@ -818,7 +834,7 @@ with tab5:
                                 color_discrete_sequence=["#f72585"])
         apply_theme(fig_dist)
         fig_dist.update_layout(margin=dict(t=10,b=0),bargap=0.1)
-        st.plotly_chart(fig_dist, use_container_width=True)
+        st.plotly_chart(fig_dist, width='stretch')
 
         st.markdown('<p class="section-title">Clinically Significant Resistance Genes</p>', unsafe_allow_html=True)
         key_genes = [g for g in ["gene_CTX-M-15","gene_CTX-M-14","gene_CTX-M-27",
@@ -829,7 +845,7 @@ with tab5:
             key_df.columns = ["Gene","Present in N isolates"]
             key_df["Gene"] = key_df["Gene"].str.replace("gene_","")
             key_df["% of isolates"] = (key_df["Present in N isolates"]/len(genomic_df)*100).round(1)
-            st.dataframe(key_df, use_container_width=True)
+            st.dataframe(key_df, width='stretch')
 
 # ==============================================================================
 # TAB 6 — RESISTANCE PREDICTOR
@@ -915,7 +931,7 @@ with tab6:
                 ))
                 fig_g.update_layout(paper_bgcolor="#0f1117",font_color="#c9d1d9",
                                     height=220,margin=dict(t=20,b=0,l=20,r=20))
-                st.plotly_chart(fig_g, use_container_width=True)
+                st.plotly_chart(fig_g, width='stretch')
 
             st.markdown("---")
             st.markdown("#### 💊 Antibiotic Recommendation — Ranked by Resistance Risk")
@@ -938,8 +954,8 @@ with tab6:
                              labels={"Resistance Risk %":"Resistance Risk %"})
             apply_theme(fig_rec)
             fig_rec.update_layout(coloraxis_showscale=False, margin=dict(t=10,b=0))
-            st.plotly_chart(fig_rec, use_container_width=True)
-            st.dataframe(rec_df, use_container_width=True)
+            st.plotly_chart(fig_rec, width='stretch')
+            st.dataframe(rec_df, width='stretch')
 
         st.markdown("---")
         st.markdown('<p class="section-title">Feature Importances</p>', unsafe_allow_html=True)
@@ -949,14 +965,14 @@ with tab6:
                          color="Importance", color_continuous_scale=["#4361ee","#f72585"])
         apply_theme(fig_imp)
         fig_imp.update_layout(coloraxis_showscale=False,margin=dict(t=10,b=0),height=280)
-        st.plotly_chart(fig_imp, use_container_width=True)
+        st.plotly_chart(fig_imp, width='stretch')
 
         # v1 Feature Injection — Prediction Session History Tracker Table & Automated Exporter
         st.markdown("---")
         st.markdown('<p class="section-title">🔮 Patient Consultation Run Log History</p>', unsafe_allow_html=True)
         if st.session_state["pred_history"]:
             history_df = pd.DataFrame(st.session_state["pred_history"])
-            st.dataframe(history_df, use_container_width=True)
+            st.dataframe(history_df, width='stretch')
             hist_csv = history_df.to_csv(index=False).encode('utf-8')
             st.download_button(label="📥 Export Prediction Audit Logs (CSV)", data=hist_csv, file_name="consultation_prediction_history.csv", mime="text/csv")
         else:
@@ -1003,7 +1019,7 @@ with tab7:
                 yaxis2=dict(title="Isolates tested", overlaying="y", side="right", showgrid=False),
                 legend_orientation="h", margin=dict(t=40,b=0)
             )
-            st.plotly_chart(fig_trend, use_container_width=True)
+            st.plotly_chart(fig_trend, width='stretch')
 
         st.markdown('<p class="section-title">All Species — Same Antibiotic, Latest Year Available</p>', unsafe_allow_html=True)
         same_ab = yearly[yearly["Antibiotic"]==atlas_abx].copy()
@@ -1011,14 +1027,14 @@ with tab7:
         fig_sp = px.bar(latest_per_species.sort_values("PercentResistant"), x="PercentResistant", y="Species", orientation="h", color="PercentResistant", color_continuous_scale=[[0,"#4cc9f0"],[1,"#f72585"]])
         apply_theme(fig_sp)
         fig_sp.update_layout(coloraxis_showscale=False,margin=dict(t=10,b=0))
-        st.plotly_chart(fig_sp, use_container_width=True)
+        st.plotly_chart(fig_sp, width='stretch')
 
         st.markdown("---")
         st.markdown("#### 🏨 ICU vs Non-ICU Resistance — India (all years)")
         fig_icu = px.bar(icu_df, x="Antibiotic", y="PercentResistant", color="Setting", barmode="group", color_discrete_map={"ICU":"#f72585","Non-ICU":"#4cc9f0"})
         apply_theme(fig_icu)
         fig_icu.update_layout(legend_orientation="h",xaxis_tickangle=-30,margin=dict(t=10,b=0))
-        st.plotly_chart(fig_icu, use_container_width=True)
+        st.plotly_chart(fig_icu, width='stretch')
 
         st.markdown("---")
         st.markdown("#### 🔥 Species × Antibiotic Resistance Heatmap (2020–2024)")
@@ -1026,14 +1042,14 @@ with tab7:
         fig_atlas_heat = px.imshow(heat_pivot, color_continuous_scale=[[0,"#4cc9f0"],[0.5,"#f8961e"],[1,"#f72585"]], zmin=0, zmax=100, labels=dict(color="% R"), aspect="auto", text_auto=".0f")
         apply_theme(fig_atlas_heat)
         fig_atlas_heat.update_layout(xaxis_tickangle=-40,margin=dict(t=10,b=0))
-        st.plotly_chart(fig_atlas_heat, use_container_width=True)
+        st.plotly_chart(fig_atlas_heat, width='stretch')
 
         st.markdown("---")
         st.markdown("#### 🧬 Resistance Gene Detections — India")
         fig_gene = px.bar(gene_df, x="Detections", y="Gene", orientation="h", color="Detections", color_continuous_scale=["#4361ee","#f72585"])
         apply_theme(fig_gene)
         fig_gene.update_layout(coloraxis_showscale=False,margin=dict(t=10,b=0))
-        st.plotly_chart(fig_gene, use_container_width=True)
+        st.plotly_chart(fig_gene, width='stretch')
 
         # ── UPGRADED GLOBAL SURVEILLANCE MAP PANEL ───────────────────────────
         st.markdown("---")
@@ -1045,7 +1061,7 @@ with tab7:
         try:
             from world_map import generate_global_map
             fig_world_map = generate_global_map(selected_map_abx)
-            st.plotly_chart(fig_world_map, use_container_width=True)
+            st.plotly_chart(fig_world_map, width='stretch')
         except (ModuleNotFoundError, AttributeError, NameError) as e:
             st.caption("🌐 Creating live geo-projections: Processing international ISO coordinate matrix mapping records...")
             
@@ -1068,4 +1084,4 @@ with tab7:
                 geo=dict(showframe=False, showcoastlines=True, projection_type='natural earth', bgcolor='#0f1117', showocean=True, oceancolor='#0d1117'),
                 paper_bgcolor="#0f1117", plot_bgcolor="#0f1117", font_color="#c9d1d9", margin=dict(l=0, r=0, t=10, b=0)
             )
-            st.plotly_chart(fig_inline_world, use_container_width=True)
+            st.plotly_chart(fig_inline_world, width='stretch')

@@ -12,6 +12,7 @@ In India, resistance patterns differ by organism, state, and hospital. 78% of th
 | Data Pipeline | `merge_icmr.py` | Decodes 4 ICMR Stata tables into unified clinical records |
 | ML Model | `train_model.py` | Random Forest resistance predictor (94.6% accuracy, AUC 0.985) |
 > ⚠️ AUC 0.983 achieved on ICMR subset (n=130). External validation on larger cohort recommended before clinical deployment.
+
 | NLP Miner | `nlp_processor.py` | SciSpacy NER extracts pathogen/antibiotic mentions from PubMed |
 | Dashboard | `dashboard.py` | 7-tab Streamlit interface with maps, heatmaps, forecasting, live predictor |
 | Forecasting | `forecast_amr.py` | Linear regression resistance trend projection |

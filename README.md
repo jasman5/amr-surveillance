@@ -63,9 +63,3 @@ git push origin main
 git status
 git pull origin main
 ```
-git push origin main
-
-PULL
-```bash
-git status
-git pull origin main

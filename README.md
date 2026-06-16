@@ -47,11 +47,9 @@ streamlit run dashboard.py # launch dashboard
 > Contact for access or use the setup scripts to pull from public sources.
 
 
-## Only for pvt repo (do not publish)
-
+## Only for pvt repo
 ### PUSH
 ```bash
-cd C:\projects\amr_project
 git status
 git add .
 git commit -m "your message"

@@ -47,7 +47,7 @@ streamlit run dashboard.py # launch dashboard
 > Contact for access or use the setup scripts to pull from public sources.
 
 
-## Only for pvt repo
+## commands
 ### PUSH
 ```bash
 git status

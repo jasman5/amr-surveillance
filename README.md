@@ -3,7 +3,7 @@ link- **https://amr-surveillance.streamlit.app/** <br>
 A comprehensive **Antimicrobial Resistance (AMR) surveillance platform** for India based on PubMed literature mining, genetic resistance profiles, WHO GLASS global trends, and ICMR multicenter clinical data.
 
 ## The Problem
-In India, resistance patterns differ by organism, state, and hospital. 78% of the *Klebsiella pneumoniae* at a Tamil Nadu doctor's intensive care unit are resistant to ciprofloxacin. Clinical judgments are made arbitrarily. This system creates that image.
+Resistance patterns vary by organism, state, and hospital in India. At a doctor's intensive care unit in Tamil Nadu, 78% of the *Klebsiella pneumoniae* are resistant to ciprofloxacin. Clinical decisions are made at random. That image is produced by this system.
 
 ## What It Does
 

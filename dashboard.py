@@ -559,6 +559,12 @@ with tab1:
     elif filtered.empty:
         st.warning("No data matches current filters.")
     else:
+        st.caption(
+            "All charts below respond to the sidebar filters (State / Organism / Ward). "
+            "Resistance is classified as Susceptible, Intermediate, or Resistant per EUCAST/CLSI breakpoints. "
+            "Intermediate isolates are excluded from binary resistance calculations."
+        )
+
         r1c1, r1c2 = st.columns(2)
         with r1c1:
             st.markdown(
@@ -907,7 +913,9 @@ with tab2:
     else:
         st.markdown("### 🗺️ India State Resistance Map")
         st.caption(
-            "Interactive spatial distribution engine. Click on regional markers to review resistance thresholds."
+            "Circle size = number of isolates collected. Color shifts from blue (low resistance) to pink (high resistance). "
+            "Click a marker to see the state name and exact resistance rate. "
+            "Data from ICMR multicentre surveillance network — 5 reporting centers currently active."
         )
 
         map_path = "Dataset/processed/amr_india_map.html"
@@ -925,6 +933,10 @@ with tab2:
         st.markdown(
             '<p class="section-title">State-wise Resistance Summary</p>',
             unsafe_allow_html=True,
+        )
+        st.caption(
+            "Ranked by overall resistance rate (Resistant / (Resistant + Susceptible)). "
+            "Intermediate phenotypes are excluded. States with fewer than 30 isolates should be interpreted cautiously."
         )
         map_df = icmr.dropna(subset=["state_name", "is_resistant"]).copy()
         state_stats = (
@@ -953,6 +965,10 @@ with tab2:
         st.markdown(
             '<p class="section-title">ICU vs OPD Resistance by State</p>',
             unsafe_allow_html=True,
+        )
+        st.caption(
+            "ICU isolates typically show higher resistance rates due to selective pressure from empirical broad-spectrum antibiotic use. "
+            "A large ICU–OPD gap in a state signals potential nosocomial AMR burden."
         )
         ward_state = (
             map_df[map_df["ward_name"].isin(["ICU", "OPD"])]

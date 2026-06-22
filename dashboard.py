@@ -570,7 +570,9 @@ with tab1:
             st.markdown(
                 '<p class="section-title">Resistance by Organism</p>',
                 unsafe_allow_html=True,
+                
             )
+            st.caption("Shows which bacteria (organisms) are most resistant to antibiotics. Taller pink bars = more resistant isolates found.")
             fig = px.bar(
                 filtered.groupby(["organism_name", "resistance"])
                 .size()
@@ -599,6 +601,7 @@ with tab1:
                 '<p class="section-title">Resistance by Ward Type</p>',
                 unsafe_allow_html=True,
             )
+            st.caption("Compares resistance levels across hospital areas like ICU, OPD, and general wards. ICU usually shows highest resistance.")
             fig2 = px.bar(
                 filtered.groupby(["ward_name", "resistance"])
                 .size()
@@ -631,6 +634,7 @@ with tab1:
                 '<p class="section-title">Age Group Breakdown</p>',
                 unsafe_allow_html=True,
             )
+            st.caption("Resistance split by patient age. Older patients (65+) often carry more resistant bacteria due to frequent antibiotic exposure.")
             fig_age = px.bar(
                 filtered.groupby(["age_group", "resistance"])
                 .size()
@@ -654,6 +658,7 @@ with tab1:
                 '<p class="section-title">Rural vs Urban Distribution</p>',
                 unsafe_allow_html=True,
             )
+            st.caption("Compares resistance between rural and urban patients. Urban hospitals often report higher resistance due to antibiotic overuse.")
             if "location_type_name" in filtered.columns:
                 fig_loc = px.bar(
                     filtered.groupby(["location_type_name", "resistance"])
@@ -680,6 +685,7 @@ with tab1:
                 '<p class="section-title">Department-wise Resistance Profiles</p>',
                 unsafe_allow_html=True,
             )
+            st.caption("Which hospital departments see the most resistant cases. Surgery and ICU departments typically have higher rates.")
             if "dept_name" in filtered.columns:
                 dept_summary = (
                     filtered.groupby(["dept_name", "resistance"])
@@ -707,6 +713,7 @@ with tab1:
             '<p class="section-title">Antibiogram Heatmap — % Resistant (organism × antibiotic)</p>',
             unsafe_allow_html=True,
         )
+        st.caption("Grid showing how resistant each bacteria is to each antibiotic. Pink = very resistant (avoid), blue = still effective (preferred). Use this to choose safer antibiotics.")
         ab_data = filtered[filtered["resistance"].isin(["Resistant", "Susceptible"])]
         if not ab_data.empty:
             pivot = (
@@ -746,6 +753,7 @@ with tab1:
             '<p class="section-title">ICU-Specific Antibiogram Mapping Layer</p>',
             unsafe_allow_html=True,
         )
+        st.caption("Same resistance grid but only for ICU patients. ICU bugs are usually harder to treat — pink squares here are a serious concern.")
         # icu_isolates = filtered[filtered["ward_name"] == "ICU"]
         icu_isolates = filtered[
             filtered["ward_name"].str.upper().str.contains("ICU", na=False)
@@ -790,6 +798,7 @@ with tab1:
             st.markdown(
                 '<p class="section-title">Isolates by State</p>', unsafe_allow_html=True
             )
+            st.caption("How many patient samples were collected from each state. Longer bar = more data, not necessarily more disease.")
             sc = filtered["state_name"].value_counts().reset_index()
             sc.columns = ["State", "n"]
             fig4 = px.bar(
@@ -811,6 +820,7 @@ with tab1:
                 '<p class="section-title">Infection Acquisition</p>',
                 unsafe_allow_html=True,
             )
+            st.caption("Where the infection was caught — inside the hospital (hospital-acquired) or before admission (community). Hospital infections tend to be more resistant.")
             ic = filtered["infection_type"].value_counts().reset_index()
             ic.columns = ["Type", "n"]
             fig5 = px.pie(
@@ -833,6 +843,7 @@ with tab1:
                 '<p class="section-title">Sample Type Distribution</p>',
                 unsafe_allow_html=True,
             )
+            st.caption("What type of body sample the bacteria was found in — e.g. urine, blood, sputum. Blood infections (bacteremia) are the most serious.")
             samp = filtered["sample_type_name"].value_counts().reset_index()
             samp.columns = ["Sample", "n"]
             fig6 = px.bar(
@@ -851,6 +862,7 @@ with tab1:
             '<p class="section-title">Antibiotic Effectiveness Ranking (lowest resistance = most effective)</p>',
             unsafe_allow_html=True,
         )
+        st.caption("Ranks antibiotics from safest to most compromised. Antibiotics on the left (blue) still work well. Avoid pink ones — bacteria have become resistant to them.")
         ab_rank = (
             filtered[filtered["is_resistant"].notna()]
             .groupby("antibiotic_name")["is_resistant"]
@@ -917,6 +929,7 @@ with tab2:
             "Click a marker to see the state name and exact resistance rate. "
             "Data from ICMR multicentre surveillance network — 5 reporting centers currently active."
         )
+        st.info("💡 Tip: A pink, large circle on a state means many resistant infections were reported there — that state needs urgent attention.")
 
         map_path = "Dataset/processed/amr_india_map.html"
         if os.path.exists(map_path):
@@ -966,10 +979,11 @@ with tab2:
             '<p class="section-title">ICU vs OPD Resistance by State</p>',
             unsafe_allow_html=True,
         )
-        st.caption(
-            "ICU isolates typically show higher resistance rates due to selective pressure from empirical broad-spectrum antibiotic use. "
-            "A large ICU–OPD gap in a state signals potential nosocomial AMR burden."
-        )
+        # st.caption(
+        #     "ICU isolates typically show higher resistance rates due to selective pressure from empirical broad-spectrum antibiotic use. "
+        #     "A large ICU–OPD gap in a state signals potential nosocomial AMR burden."
+        # )
+        st.caption("Compares ICU vs outpatient (OPD) resistance per state. A big gap between pink (ICU) and blue (OPD) bars means hospital-acquired resistance is a major problem in that state.")
         ward_state = (
             map_df[map_df["ward_name"].isin(["ICU", "OPD"])]
             .groupby(["state_name", "ward_name"])["is_resistant"]
@@ -1113,6 +1127,7 @@ with tab3:
             margin=dict(t=10, b=0),
             title=f"{forecast_org} — Resistance Trend Projection",
         )
+        st.caption("Blue line = past estimated trend. Pink dashed line = predicted future resistance rate. Shaded area = uncertainty range. Rising lines mean this bacteria is getting harder to treat over time.")
         st.plotly_chart(fig_fc, width="stretch")
         graph_gap()
 
@@ -1139,6 +1154,7 @@ with tab3:
             '<p class="section-title">All Organisms — Current Resistance Rate Comparison</p>',
             unsafe_allow_html=True,
         )
+        st.caption("Quick snapshot of how resistant each bacteria is right now. Pink bars (right side) are most resistant and need careful antibiotic choice.")
         all_org_rates = (
             icmr.dropna(subset=["is_resistant"])
             .groupby("organism_name")["is_resistant"]
@@ -1197,6 +1213,7 @@ with tab3:
                         xaxis_title="Year",
                         yaxis_title="Isolates",
                     )
+                    st.caption("Number of patient samples tested for resistance each year. More bars = better surveillance coverage that year.")
                     st.plotly_chart(fig_sdg, width="stretch")
                     graph_gap()
 
@@ -1253,6 +1270,7 @@ with tab4:
                 '<p class="section-title">Resistance % Over Time</p>',
                 unsafe_allow_html=True,
             )
+            st.caption("Tracks how resistance has changed year by year in India. A rising line means the bacteria is becoming harder to treat.")
             trend = (
                 gf.groupby(["Year", "PathogenName"])["PercentResistant"]
                 .mean()
@@ -1279,6 +1297,7 @@ with tab4:
                 '<p class="section-title">Resistance by Antibiotic (latest year)</p>',
                 unsafe_allow_html=True,
             )
+            st.caption("Which antibiotics are most affected by resistance in the most recent year. Blue = still effective, pink = heavily compromised.")
             if not gf.empty:
                 latest = gf[gf["Year"] == gf["Year"].max()]
                 ab_pct = (
@@ -1313,6 +1332,7 @@ with tab4:
             '<p class="section-title">India Antibiogram Heatmap (avg % Resistant)</p>',
             unsafe_allow_html=True,
         )
+        st.caption("Overview of all bacteria vs all antibiotics in India. Find the blue squares — those are your safest treatment options.")
         if not gf.empty:
             heat_pivot = (
                 gf.groupby(["PathogenName", "AbTargets"])["PercentResistant"]
@@ -1391,12 +1411,14 @@ with tab4:
             )
             st.plotly_chart(fig_rank, width="stretch")
             graph_gap()
+            st.caption("Ranks all countries by resistance rate for this bacteria-antibiotic pair. India in pink — check where it sits compared to the rest of the world.")
             st.caption("🔴 India highlighted in pink")
 
             st.markdown(
                 '<p class="section-title">Longitudinal Trend Analysis — India vs Global Baseline</p>',
                 unsafe_allow_html=True,
             )
+            st.caption("Pink = India's resistance trend. Blue = world average. If India's pink line is above the blue line, India has a worse resistance problem than most countries.")
             india_trend = (
                 sub_global[sub_global["CountryTerritoryArea"] == "India"]
                 .groupby("Year")["PercentResistant"]
@@ -1492,6 +1514,7 @@ with tab5:
                 '<p class="section-title">Drug Class Resistance Prevalence</p>',
                 unsafe_allow_html=True,
             )
+            st.caption("How many bacterial samples carry resistance to each drug family. Longer bar = more samples resistant to that class of antibiotics.")
             class_prev = (
                 genomic_df[class_cols].sum().sort_values(ascending=True).reset_index()
             )
@@ -1517,6 +1540,7 @@ with tab5:
                 '<p class="section-title">Top 15 Resistance Genes</p>',
                 unsafe_allow_html=True,
             )
+            st.caption("The most commonly found resistance genes. Each gene helps bacteria survive a specific antibiotic. More detections = that gene is widespread.")
             gene_freq = (
                 genomic_df[gene_cols]
                 .sum()
@@ -1543,6 +1567,7 @@ with tab5:
             '<p class="section-title">Resistance Burden per Isolate</p>',
             unsafe_allow_html=True,
         )
+        st.caption("How many resistance genes each bacterial sample carries. Samples on the right carry many genes — those are multi-drug resistant (MDR) bacteria and are very hard to treat.")
         fig_dist = px.histogram(
             genomic_df,
             x="total_amr_genes",
@@ -1617,19 +1642,19 @@ with tab6:
         inf_inv = {v: k for k, v in meta["infection"].items()}
         dept_inv = {v: k for k, v in meta["dept"].items()}
         samp_inv = {v: k for k, v in meta["sample_type"].items()}
-
+        
         col1, col2, col3 = st.columns(3)
         with col1:
             age_in = st.slider("Patient Age", 1, 100, 45)
-            gender_in = st.selectbox("Gender", ["Male", "Female"])
-            ward_in = st.selectbox("Ward", list(ward_inv.keys()))
+            gender_in = st.selectbox("Gender", sorted(["Male", "Female"]))
+            ward_in = st.selectbox("Ward", sorted(ward_inv.keys()))
         with col2:
-            org_in = st.selectbox("Suspected Organism", list(org_inv.keys()))
-            atb_in = st.selectbox("Proposed Antibiotic", list(atb_inv.keys()))
-            samp_in = st.selectbox("Sample type", list(samp_inv.keys()))
+            org_in = st.selectbox("Suspected Organism", sorted(org_inv.keys()))
+            atb_in = st.selectbox("Proposed Antibiotic", sorted(atb_inv.keys()))
+            samp_in = st.selectbox("Sample type", sorted(samp_inv.keys()))
         with col3:
-            dept_in = st.selectbox("Department", list(dept_inv.keys()))
-            inf_in = st.selectbox("Infection acquisition", list(inf_inv.keys()))
+            dept_in = st.selectbox("Department", sorted(dept_inv.keys()))
+            inf_in = st.selectbox("Infection acquisition", sorted(inf_inv.keys()))
 
 
         if st.button("🔮 Predict Resistance", type="primary"):
@@ -1661,6 +1686,7 @@ with tab6:
             pc1, pc2 = st.columns([1, 2])
             with pc1:
                 st.metric("Resistance probability", f"{prob:.1f}%")
+                st.caption("This score estimates the chance that the chosen antibiotic will NOT work for this patient. Higher % = more likely to fail.")
                 if prob >= 60:
                     st.error("⚠️ High risk — consider alternative antibiotic.")
                 elif prob >= 40:
@@ -1703,9 +1729,7 @@ with tab6:
 
             st.markdown("---")
             st.markdown("#### 💊 Antibiotic Recommendation — Ranked by Resistance Risk")
-            st.caption(
-                "All available antibiotics scored for this patient profile. Lower % = safer choice."
-            )
+            st.caption("All antibiotics ranked for this patient. Blue/left = safer choice. Pink/right = bacteria likely already resistant. ✅ means recommended, ❌ means avoid. All available antibiotics scored for this patient profile. Lower % = safer choice.")
 
             recommendations = []
             for ab_name, ab_id in atb_inv.items():
@@ -1748,6 +1772,7 @@ with tab6:
         st.markdown(
             '<p class="section-title">Feature Importances</p>', unsafe_allow_html=True
         )
+        st.caption("Which factors most influenced the prediction. Longer bar = that factor (e.g. organism type, ward) had more impact on predicting resistance.")
         imp = pd.DataFrame(
             list(meta["importances"]["clinical"].items()),
             columns=["Feature", "Importance"],
@@ -1765,6 +1790,7 @@ with tab6:
             coloraxis_showscale=False, margin=dict(t=10, b=0), height=280
         )
         st.plotly_chart(fig_imp, width="stretch")
+        
         graph_gap()
 
         # v1 Feature Injection — Prediction Session History Tracker Table & Automated Exporter
@@ -1875,12 +1901,14 @@ with tab7:
                 margin=dict(t=40, b=0),
             )
             st.plotly_chart(fig_trend, width="stretch")
+            st.caption("Pink line = resistance rate over the years. Blue bars = how many samples were tested that year. Rising pink line = resistance getting worse.")
             graph_gap()
 
         st.markdown(
             '<p class="section-title">All Species — Same Antibiotic, Latest Year Available</p>',
             unsafe_allow_html=True,
         )
+        st.caption("Compares how resistant different bacteria types are to the same antibiotic. Useful to see which bacteria are most problematic for a given drug.")
         same_ab = yearly[yearly["Antibiotic"] == atlas_abx].copy()
         latest_per_species = same_ab.sort_values("Year").groupby("Species").tail(1)
         fig_sp = px.bar(
@@ -1898,6 +1926,7 @@ with tab7:
 
         st.markdown("---")
         st.markdown("#### 🏨 ICU vs Non-ICU Resistance — India (all years)")
+        st.caption("ICU patients (pink) almost always show higher resistance than non-ICU (blue) because stronger antibiotics are used in ICUs, encouraging resistance to develop.")
         fig_icu = px.bar(
             icu_df,
             x="Antibiotic",
@@ -1915,6 +1944,7 @@ with tab7:
 
         st.markdown("---")
         st.markdown("#### 🔥 Species × Antibiotic Resistance Heatmap (2020–2024)")
+        st.caption("Big picture view — all bacteria vs all antibiotics. A mostly pink row means that bacteria is resistant to almost everything. Blue cells are your remaining treatment options.")
         heat_pivot = heat_df.pivot(
             index="Species", columns="Antibiotic", values="PercentResistant"
         )
@@ -1934,6 +1964,7 @@ with tab7:
 
         st.markdown("---")
         st.markdown("#### 🧬 Resistance Gene Detections — India")
+        st.caption("Resistance genes detected across India samples. Each gene gives bacteria a tool to survive a specific antibiotic. Higher bars = that gene is more widespread across the country.")
         fig_gene = px.bar(
             gene_df,
             x="Detections",
@@ -2134,6 +2165,7 @@ with tab7:
                 margin=dict(l=0, r=0, t=10, b=0),
             )
             st.plotly_chart(fig_inline_world, width="stretch")
+            st.caption("World map coloured by resistance rate for the selected antibiotic. Pink/dark countries have the worst resistance — India's position here shows where it stands globally.") 
             graph_gap()
 
             st.markdown("---")

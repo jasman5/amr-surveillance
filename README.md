@@ -1,4 +1,4 @@
-# 🧬 AMR Surveillance System — India
+# AMR Surveillance System — India
 link- **https://amr-surveillance.streamlit.app/** <br>
 A comprehensive **Antimicrobial Resistance (AMR) surveillance platform** for India based on PubMed literature mining, genetic resistance profiles, WHO GLASS global trends, and ICMR multicenter clinical data.
 
@@ -15,7 +15,7 @@ In India, resistance patterns differ by organism, state, and hospital. 78% of th
 | ML Model | `pipeline/train_model.py` | Random Forest resistance predictor (94.6% accuracy, AUC 0.985) |
 | Dashboard | `dashboard.py` | 7-tab Streamlit interface with maps, heatmaps, forecasting, live predictor |
 | Geospatial helper | `world_map.py` | Global choropleth used by the ATLAS Global tab |
-> ⚠️ AUC 0.983 achieved on ICMR subset (n=130). External validation on a larger cohort is recommended before clinical deployment.
+> AUC 0.983 achieved on ICMR subset (n=130). External validation on a larger cohort is recommended before clinical deployment.
 
 ## Dashboard Tabs
 1. **ICMR Clinical** — Antibiogram heatmap, ward breakdown, age group stratification, ICU-specific antibiogram, state distribution, antibiotic effectiveness ranking
@@ -66,6 +66,6 @@ python pipeline/train_model.py      # train + save the resistance model
 streamlit run dashboard.py          # launch dashboard
 ```
 
-> ⚠️ Clinical datasets are excluded from this repository (patient privacy).
+> Clinical datasets are excluded from this repository (patient privacy).
 > Contact for access or use the setup scripts to pull from public sources.
 

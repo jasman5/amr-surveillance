@@ -141,27 +141,10 @@ div[role="option"] { color: #0F172A !important; }
 """,
     unsafe_allow_html=True,
 )
-# ─────────────────────────────────────────────────────────────────────────────
-# PLOTLY DARK THEME INTERFACE CONFIGURATION
-# ─────────────────────────────────────────────────────────────────────────────
-# DARK_THEME = dict(
-#     plot_bgcolor="#0d1117",
-#     paper_bgcolor="#0d1117",
-#     font_color="#c9d1d9",
-#     font_family="Inter, sans-serif",
-#     xaxis=dict(gridcolor="#1e2130", linecolor="#1e2130", tickcolor="#8b95a8",
-#                tickfont=dict(size=10), title_font=dict(size=11)),
-#     yaxis=dict(gridcolor="#1e2130", linecolor="#1e2130", tickcolor="#8b95a8",
-#                tickfont=dict(size=10), title_font=dict(size=11)),
-#     legend=dict(bgcolor="rgba(0,0,0,0)", bordercolor="#1e2130",
-#                 font=dict(size=10), orientation="h", y=-0.18),
-#     margin=dict(t=10, b=0, l=0, r=0),
-#     hoverlabel=dict(bgcolor="#1e2130", bordercolor="#f72585",
-#                     font=dict(color="#e6edf3", size=11)),
-# )
-# NEW HEALTHCARE LIGHT THEME
-# ============================================================================
 
+# ─────────────────────────────────────────────────────────────────────────────
+# PLOTLY LIGHT THEME
+# ─────────────────────────────────────────────────────────────────────────────
 LIGHT_THEME = dict(
     plot_bgcolor="#FFFFFF",
     paper_bgcolor="#FFFFFF",
@@ -186,8 +169,6 @@ def apply_theme(fig, **extra):
     return fig
 
 
-# def graph_gap():
-#     st.markdown("<div style='height:30px'></div>", unsafe_allow_html=True)
 def graph_gap():
     pass
 
@@ -208,6 +189,7 @@ RESISTANCE_COLORS = {
     "Susceptible": HEALTH_GREEN,
     "Unknown": "#94A3B8",
 }
+
 # ─────────────────────────────────────────────────────────────────────────────
 # STATE COORDINATES
 # ─────────────────────────────────────────────────────────────────────────────
@@ -236,7 +218,6 @@ def load_icmr():
         return None
     df = pd.read_csv(p)
     df["resistance"] = df["resistance"].fillna("Unknown")
-    # Generate unified categorical bounds for v1 stratification parameters
     if "age" in df.columns:
         df["age_group"] = pd.cut(
             df["age"],
@@ -457,20 +438,7 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
-# st.caption(
-#     "Data Architecture Repository: ICMR AMR Network Baseline · WHO GLASS Registry Subset · Kaggle Bioinformatic Sequence Logs · PubMed Text Mining Engines"
-# )
 
-# st.info("""
-# 📊 DATA SOURCES
-
-# • ICMR Antimicrobial Resistance Surveillance Network (India)<br>
-# • WHO GLASS (Global Antimicrobial Resistance and Use Surveillance System)<br>
-# • Pfizer ATLAS Surveillance Program<br>
-# • Kaggle AMR Genomic Dataset<br>
-# • PubMed Literature Mining <br>
-# All dashboards use real-world datasets unless explicitly labelled as forecast or simulation.
-# """)
 st.markdown(
     """
 <div class="compact-card">
@@ -484,6 +452,7 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
+
 if icmr is not None and not filtered.empty:
     total = len(filtered)
     resistant = len(filtered[filtered["resistance"] == "Resistant"])
@@ -505,8 +474,7 @@ if icmr is not None and not filtered.empty:
     c4.metric("Organisms tracked", f"{filtered['organism_name'].nunique()}")
     c5.metric("States covered", f"{filtered['state_name'].nunique()}")
     c6.metric("Best antibiotic", best_ab)
-    
-    
+
 
 def show_tab_info(title, purpose, source, use_cases):
     with st.container(border=True):
@@ -523,7 +491,8 @@ def show_tab_info(title, purpose, source, use_cases):
         with c2:
             st.metric("Data Source", "Real Dataset")
             st.caption(f"Source: {source}")
-            
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # TAB MOUNT HOOK
 # ─────────────────────────────────────────────────────────────────────────────
@@ -570,7 +539,6 @@ with tab1:
             st.markdown(
                 '<p class="section-title">Resistance by Organism</p>',
                 unsafe_allow_html=True,
-                
             )
             st.caption("Shows which bacteria (organisms) are most resistant to antibiotics. Taller pink bars = more resistant isolates found.")
             fig = px.bar(
@@ -653,6 +621,7 @@ with tab1:
             apply_theme(fig_age)
             st.plotly_chart(fig_age, width="stretch")
             graph_gap()
+
         with demo2:
             st.markdown(
                 '<p class="section-title">Rural vs Urban Distribution</p>',
@@ -680,6 +649,7 @@ with tab1:
                 graph_gap()
             else:
                 st.caption("Location profile markers not populated in subset.")
+
         with demo3:
             st.markdown(
                 '<p class="section-title">Department-wise Resistance Profiles</p>',
@@ -754,11 +724,9 @@ with tab1:
             unsafe_allow_html=True,
         )
         st.caption("Same resistance grid but only for ICU patients. ICU bugs are usually harder to treat — pink squares here are a serious concern.")
-        # icu_isolates = filtered[filtered["ward_name"] == "ICU"]
         icu_isolates = filtered[
             filtered["ward_name"].str.upper().str.contains("ICU", na=False)
         ]
-
         icu_ab = icu_isolates[
             icu_isolates["resistance"].isin(["Resistant", "Susceptible"])
         ]
@@ -815,6 +783,7 @@ with tab1:
             )
             st.plotly_chart(fig4, width="stretch")
             graph_gap()
+
         with r2c2:
             st.markdown(
                 '<p class="section-title">Infection Acquisition</p>',
@@ -830,7 +799,6 @@ with tab1:
                 color_discrete_sequence=["#f72585", "#4cc9f0", "#f8961e"],
                 hole=0.5,
             )
-
             apply_theme(fig5)
             fig5.update_layout(
                 margin=dict(t=10, b=0), legend=dict(orientation="h", y=-0.15)
@@ -901,7 +869,6 @@ with tab1:
             ]
             export_df = filtered[show].reset_index(drop=True)
             st.dataframe(export_df, width="stretch")
-            # v1 Feature Injection — Automated download exporter for subset
             csv_data = export_df.to_csv(index=False).encode("utf-8")
             st.download_button(
                 label="📥 Download Filtered Clinical Subset (CSV)",
@@ -935,8 +902,6 @@ with tab2:
         if os.path.exists(map_path):
             with open(map_path, "r", encoding="utf-8") as f:
                 html_map_content = f.read()
-            # components.html(html_map_content, height=550, scrolling=False)
-            # st.iframe(html_map_content, height=550, scrolling=False)
             st.iframe(html_map_content, height=550)
         else:
             st.warning(
@@ -979,10 +944,6 @@ with tab2:
             '<p class="section-title">ICU vs OPD Resistance by State</p>',
             unsafe_allow_html=True,
         )
-        # st.caption(
-        #     "ICU isolates typically show higher resistance rates due to selective pressure from empirical broad-spectrum antibiotic use. "
-        #     "A large ICU–OPD gap in a state signals potential nosocomial AMR burden."
-        # )
         st.caption("Compares ICU vs outpatient (OPD) resistance per state. A big gap between pink (ICU) and blue (OPD) bars means hospital-acquired resistance is a major problem in that state.")
         ward_state = (
             map_df[map_df["ward_name"].isin(["ICU", "OPD"])]
@@ -1039,9 +1000,6 @@ with tab3:
             )
         with fc2:
             forecast_years = st.slider("Forecast horizon (years ahead)", 1, 10, 5)
-
-        # fc_df = icmr[icmr["organism_name"] == forecast_org].dropna(subset=["is_resistant"])
-        # current_rate = fc_df["is_resistant"].mean() if not fc_df.empty else 0.50
 
         fc_df = icmr[icmr["organism_name"] == forecast_org].copy()
 
@@ -1110,7 +1068,6 @@ with tab3:
                 name="95% Confidence Buffer",
             )
         )
-
         fig_fc.add_hline(
             y=current_rate * 100,
             line_dash="dot",
@@ -1471,11 +1428,10 @@ with tab4:
             .sort_values("avg_resistance", ascending=False)
         )
 
-        # Inject dynamic evaluation calculation fields from v1
         summary["AboveGlobal"] = summary["avg_resistance"].apply(
             lambda x: "🔴 Yes" if x > global_mean_val else "🔵 No"
         )
-        summary["YoY Change Estimate"] = "+1.4% (Risin)"  # Matching v1 signature table
+        summary["YoY Change Estimate"] = "+1.4% (Risin)"
         summary.columns = [
             "Pathogen",
             "Antibiotic",
@@ -1642,7 +1598,7 @@ with tab6:
         inf_inv = {v: k for k, v in meta["infection"].items()}
         dept_inv = {v: k for k, v in meta["dept"].items()}
         samp_inv = {v: k for k, v in meta["sample_type"].items()}
-        
+
         col1, col2, col3 = st.columns(3)
         with col1:
             age_in = st.slider("Patient Age", 1, 100, 45)
@@ -1655,7 +1611,6 @@ with tab6:
         with col3:
             dept_in = st.selectbox("Department", sorted(dept_inv.keys()))
             inf_in = st.selectbox("Infection acquisition", sorted(inf_inv.keys()))
-
 
         if st.button("🔮 Predict Resistance", type="primary"):
             features = meta["clinical_features"]
@@ -1715,15 +1670,11 @@ with tab6:
                     )
                 )
                 fig_g.update_layout(
-                    # paper_bgcolor="#0f1117",
-                    # font_color="#c9d1d9",
                     paper_bgcolor="white",
                     font_color="#0F172A",
                     height=220,
                     margin=dict(t=20, b=0, l=20, r=20),
                 )
-                
-
                 st.plotly_chart(fig_g, width="stretch")
                 graph_gap()
 
@@ -1790,7 +1741,6 @@ with tab6:
             coloraxis_showscale=False, margin=dict(t=10, b=0), height=280
         )
         st.plotly_chart(fig_imp, width="stretch")
-        
         graph_gap()
 
         # v1 Feature Injection — Prediction Session History Tracker Table & Automated Exporter
@@ -2011,124 +1961,31 @@ with tab7:
             fallback_world_df = pd.DataFrame(
                 {
                     "Country": [
-                        "India",
-                        "United States",
-                        "United Kingdom",
-                        "South Africa",
-                        "Brazil",
-                        "Australia",
-                        "Japan",
-                        "Germany",
-                        "Canada",
-                        "China",
-                        "France",
-                        "Italy",
-                        "Russia",
-                        "Argentina",
-                        "Mexico",
-                        "Thailand",
-                        "Spain",
-                        "South Korea",
+                        "India", "United States", "United Kingdom", "South Africa",
+                        "Brazil", "Australia", "Japan", "Germany", "Canada", "China",
+                        "France", "Italy", "Russia", "Argentina", "Mexico",
+                        "Thailand", "Spain", "South Korea",
                     ],
                     "ISO_Alpha": [
-                        "IND",
-                        "USA",
-                        "GBR",
-                        "ZAF",
-                        "BRA",
-                        "AUS",
-                        "JPN",
-                        "DEU",
-                        "CAN",
-                        "CHN",
-                        "FRA",
-                        "ITA",
-                        "RUS",
-                        "ARG",
-                        "MEX",
-                        "THA",
-                        "ESP",
-                        "KOR",
+                        "IND", "USA", "GBR", "ZAF", "BRA", "AUS", "JPN", "DEU",
+                        "CAN", "CHN", "FRA", "ITA", "RUS", "ARG", "MEX",
+                        "THA", "ESP", "KOR",
                     ],
                     "Ciprofloxacin": [
-                        74.2,
-                        38.4,
-                        21.8,
-                        55.4,
-                        48.9,
-                        18.5,
-                        24.1,
-                        26.3,
-                        22.1,
-                        62.7,
-                        29.4,
-                        34.6,
-                        41.2,
-                        43.5,
-                        47.1,
-                        58.8,
-                        31.3,
-                        28.9,
+                        74.2, 38.4, 21.8, 55.4, 48.9, 18.5, 24.1, 26.3,
+                        22.1, 62.7, 29.4, 34.6, 41.2, 43.5, 47.1, 58.8, 31.3, 28.9,
                     ],
                     "Meropenem": [
-                        42.1,
-                        12.4,
-                        4.2,
-                        28.9,
-                        31.4,
-                        2.1,
-                        8.4,
-                        7.1,
-                        5.3,
-                        33.6,
-                        9.1,
-                        18.4,
-                        22.1,
-                        19.4,
-                        15.6,
-                        29.2,
-                        11.2,
-                        14.5,
+                        42.1, 12.4, 4.2, 28.9, 31.4, 2.1, 8.4, 7.1,
+                        5.3, 33.6, 9.1, 18.4, 22.1, 19.4, 15.6, 29.2, 11.2, 14.5,
                     ],
                     "Colistin": [
-                        8.4,
-                        1.2,
-                        0.5,
-                        4.3,
-                        9.1,
-                        0.2,
-                        1.1,
-                        1.3,
-                        0.8,
-                        12.4,
-                        1.0,
-                        3.2,
-                        5.4,
-                        4.1,
-                        3.8,
-                        7.6,
-                        1.9,
-                        2.1,
+                        8.4, 1.2, 0.5, 4.3, 9.1, 0.2, 1.1, 1.3,
+                        0.8, 12.4, 1.0, 3.2, 5.4, 4.1, 3.8, 7.6, 1.9, 2.1,
                     ],
                     "Amikacin": [
-                        34.5,
-                        15.2,
-                        8.4,
-                        22.1,
-                        24.6,
-                        5.3,
-                        11.2,
-                        10.4,
-                        9.1,
-                        28.4,
-                        11.3,
-                        14.2,
-                        19.5,
-                        18.2,
-                        21.4,
-                        27.3,
-                        12.5,
-                        10.8,
+                        34.5, 15.2, 8.4, 22.1, 24.6, 5.3, 11.2, 10.4,
+                        9.1, 28.4, 11.3, 14.2, 19.5, 18.2, 21.4, 27.3, 12.5, 10.8,
                     ],
                 }
             )
@@ -2165,7 +2022,7 @@ with tab7:
                 margin=dict(l=0, r=0, t=10, b=0),
             )
             st.plotly_chart(fig_inline_world, width="stretch")
-            st.caption("World map coloured by resistance rate for the selected antibiotic. Pink/dark countries have the worst resistance — India's position here shows where it stands globally.") 
+            st.caption("World map coloured by resistance rate for the selected antibiotic. Pink/dark countries have the worst resistance — India's position here shows where it stands globally.")
             graph_gap()
 
             st.markdown("---")

@@ -6,7 +6,7 @@ A comprehensive **Antimicrobial Resistance (AMR) surveillance platform** for Ind
 ## The Problem
 In India, resistance patterns vary by organism, state, and hospital. 78% of the *Klebsiella pneumoniae* in a Tamil Nadu doctor's ICU are resistant to ciprofloxacin. Clinical decisions are often made arbitrarily. This system reflects that reality.
 
-## What It Does
+## Functionality Overview
 
 | Component | File | Purpose |
 |---|---|---|
